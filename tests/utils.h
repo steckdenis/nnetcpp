@@ -39,6 +39,8 @@ bool checkLearning(Network *network,
             mse += network->trainSample(input[i], output[i]);
         }
 
+        network->reset();
+
         // Stats
         mse /= Float(input.size());
 
@@ -48,6 +50,13 @@ bool checkLearning(Network *network,
             // Learning was possible
             return true;
         }
+    }
+
+    // No learning possible, print the values for debugging
+    for (std::size_t i=0; i<input.size(); ++i) {
+        Vector v = network->predict(input[i]);
+
+        std::cout << input[i] << ';' << v << ';' << output[i] << std::endl;
     }
 
     return false;   // No learning possible

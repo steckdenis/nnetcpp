@@ -8,10 +8,12 @@ class TestPerceptron : public CppUnit::TestCase
 {
     CPPUNIT_TEST_SUITE(TestPerceptron);
     CPPUNIT_TEST(testLinear);
+    CPPUNIT_TEST(testTanh);
     CPPUNIT_TEST_SUITE_END();
 
     protected:
         void testLinear();
+        void testTanh();
 };
 
 #endif

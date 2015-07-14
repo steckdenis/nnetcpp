@@ -59,3 +59,48 @@ void TestPerceptron::testLinear()
 
     delete net;
 }
+
+void TestPerceptron::testTanh()
+{
+    // Try to approximate a cosinus function
+    std::vector<Vector> input;
+    std::vector<Vector> output;
+
+    input.push_back(makeVector({-1.0}));
+    input.push_back(makeVector({-0.6}));
+    input.push_back(makeVector({-0.2}));
+    input.push_back(makeVector({0.2}));
+    input.push_back(makeVector({0.6}));
+    input.push_back(makeVector({1.0}));
+
+    output.push_back(makeVector({0.54}));
+    output.push_back(makeVector({0.82}));
+    output.push_back(makeVector({0.98}));
+    output.push_back(makeVector({0.98}));
+    output.push_back(makeVector({0.82}));
+    output.push_back(makeVector({0.54}));
+
+    // Network with a single hidden layer (with tanh activation), 10 hidden neurons
+    Network *net = new Network(1);
+    Dense *dense1 = new Dense(10, 0.01);
+    Tanh *tanh1 = new Tanh;
+    Dense *dense2 = new Dense(1, 0.01);
+    Tanh *tanh2 = new Tanh;
+
+    dense1->setInput(net->inputPort());
+    tanh1->setInput(dense1->output());
+    dense2->setInput(tanh1->output());
+    tanh2->setInput(dense2->output());
+
+    net->addNode(dense1);
+    net->addNode(tanh1);
+    net->addNode(dense2);
+    net->addNode(tanh2);
+
+    CPPUNIT_ASSERT_MESSAGE(
+        "Learning a cosinus function using 10 hidden neurons",
+        checkLearning(net, input, output, 0.04, 100)
+    );
+
+    delete net;
+}
