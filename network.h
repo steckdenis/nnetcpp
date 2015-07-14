@@ -62,14 +62,18 @@ class Network
          * the network on one sample. Minibatches can be implemented by predicting
          * several values, calling setExpectedOutput() several times, then calling
          * update() one time.
+         *
+         * @return Mean squared error over the output neurons
          */
-        void setExpectedOutput(const Vector &output);
+        Float setExpectedOutput(const Vector &output);
 
         /**
          * @brief Set the error signals at the output of this network and
          *        back-propagate it, without performing any gradient update
+         *
+         * @return Mean squared error over the output neurons
          */
-        void setError(const Vector &error);
+        Float setError(const Vector &error);
 
         /**
          * @brief Perform one gradient update using the error computed by the
@@ -81,8 +85,10 @@ class Network
 
         /**
          * @brief Shortcut method that performs one gradient update on a sample
+         *
+         * @return Mean squared error over the output neurons
          */
-        void trainSample(const Vector &input, const Vector &output);
+        Float trainSample(const Vector &input, const Vector &output);
 
     private:
         AbstractNode::Port _input_port;

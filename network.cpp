@@ -15,6 +15,11 @@ Network::~Network()
     }
 }
 
+AbstractNode::Port* Network::inputPort()
+{
+    return &_input_port;
+}
+
 void Network::addNode(AbstractNode *node)
 {
     _nodes.push_back(node);
@@ -30,6 +35,11 @@ Vector Network::predict(const Vector &input)
     for (AbstractNode *node : _nodes) {
         node->forward();
     }
+
+    // Return the output of the last node
+    AbstractNode *last = _nodes.back();
+
+    return last->output()->value;
 }
 
 void Network::reset()
@@ -40,14 +50,14 @@ void Network::reset()
     }
 }
 
-void Network::setExpectedOutput(const Vector &output)
+Float Network::setExpectedOutput(const Vector &output)
 {
     AbstractNode *last = _nodes.back();
 
-    setError(output - last->output()->value);
+    return setError(last->output()->value - output);
 }
 
-void Network::setError(const Vector &error)
+Float Network::setError(const Vector &error)
 {
     AbstractNode *last = _nodes.back();
 
@@ -60,6 +70,8 @@ void Network::setError(const Vector &error)
     for (int i=_nodes.size()-1; i>=0; --i) {
         _nodes[i]->backward();
     }
+
+    return error.cwiseProduct(error).mean();
 }
 
 void Network::update()
@@ -71,9 +83,13 @@ void Network::update()
     }
 }
 
-void Network::trainSample(const Vector &input, const Vector &output)
+Float Network::trainSample(const Vector &input, const Vector &output)
 {
+    Float error;
+
     predict(input);
-    setExpectedOutput(output);
+    error = setExpectedOutput(output);
     update();
+
+    return error;
 }
