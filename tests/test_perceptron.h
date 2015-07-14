@@ -7,11 +7,11 @@
 class TestPerceptron : public CppUnit::TestCase
 {
     CPPUNIT_TEST_SUITE(TestPerceptron);
-    CPPUNIT_TEST(testSingleLinear);
+    CPPUNIT_TEST(testLinear);
     CPPUNIT_TEST_SUITE_END();
 
     protected:
-        void testSingleLinear();
+        void testLinear();
 };
 
 #endif

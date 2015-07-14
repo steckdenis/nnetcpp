@@ -5,7 +5,7 @@
 #include <dense.h>
 #include <tanh.h>
 
-void TestPerceptron::testSingleLinear()
+void TestPerceptron::testLinear()
 {
     // Try to approximate a linear function
     std::vector<Vector> input;
@@ -27,13 +27,35 @@ void TestPerceptron::testSingleLinear()
 
     // Network with a single Dense layer
     Network *net = new Network(1);
-    Dense *dense = new Dense(1, 0.05);
+    Dense *dense1 = new Dense(1, 0.05);
 
-    dense->setInput(net->inputPort());
-    net->addNode(dense);
+    dense1->setInput(net->inputPort());
+    net->addNode(dense1);
 
     CPPUNIT_ASSERT_MESSAGE(
-        "Learning a linear function",
+        "Learning a linear function using no hidden layer",
         checkLearning(net, input, output, 0.0001, 100)
     );
+
+    delete net;
+
+    // Network a an hidden layer of 10 neurons
+    Dense *dense2;
+
+    net = new Network(1);
+    dense1 = new Dense(10, 0.05);
+    dense2 = new Dense(1, 0.05);
+
+    dense1->setInput(net->inputPort());
+    dense2->setInput(dense1->output());
+
+    net->addNode(dense1);
+    net->addNode(dense2);
+
+    CPPUNIT_ASSERT_MESSAGE(
+        "Learning a linear function using one hidden layer",
+        checkLearning(net, input, output, 0.0001, 100)
+    );
+
+    delete net;
 }
