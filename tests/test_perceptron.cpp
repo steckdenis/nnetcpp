@@ -3,7 +3,7 @@
 
 #include <network.h>
 #include <dense.h>
-#include <tanh.h>
+#include <activation.h>
 
 void TestPerceptron::testLinear()
 {
@@ -76,9 +76,9 @@ void TestPerceptron::testTanh()
     // Network with a single hidden layer (with tanh activation), 10 hidden neurons
     Network *net = new Network(1);
     Dense *dense1 = new Dense(10, 0.001);
-    Tanh *tanh1 = new Tanh;
+    TanhActivation *tanh1 = new TanhActivation;
     Dense *dense2 = new Dense(1, 0.001);
-    Tanh *tanh2 = new Tanh;
+    TanhActivation *tanh2 = new TanhActivation;
 
     dense1->setInput(net->inputPort());
     tanh1->setInput(dense1->output());
