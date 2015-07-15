@@ -11,6 +11,9 @@ set(nnetcpp_SRCS
     network.cpp
     dense.cpp
     tanh.cpp
+    abstractmergenode.cpp
+    mergesum.cpp
+    mergeproduct.cpp
 )
 add_library(nnetcpp ${nnetcpp_SRCS})
 

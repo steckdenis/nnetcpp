@@ -9,6 +9,7 @@ add_definitions(-Wall -Wextra)
 add_executable(tests
     tests.cpp
     test_perceptron.cpp
+    test_merge.cpp
 )
 target_link_libraries(tests
     ${CPPUNIT_LIBRARIES}

@@ -57,8 +57,12 @@ void Dense::update()
     _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.cwiseProduct(_d_bias);
 
     // Perform the update using RMSprop
-    _weights.noalias() -= (_learning_rate * _d_weights).cwiseQuotient(_avg_d_weights.cwiseSqrt());
-    _bias.noalias() -= (_learning_rate * _d_bias).cwiseQuotient(_avg_d_bias.cwiseSqrt());
+    _weights.noalias() -= (_learning_rate * _d_weights).cwiseQuotient(
+        (_avg_d_weights.cwiseSqrt().array() + 1e-30).matrix()
+    );
+    _bias.noalias() -= (_learning_rate * _d_bias).cwiseQuotient(
+        (_avg_d_bias.cwiseSqrt().array() + 1e-30).matrix()
+    );
 }
 
 void Dense::clearError()

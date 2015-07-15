@@ -9,7 +9,7 @@
 /**
  * @brief Make a vector from a sequence of floats
  */
-Vector makeVector(const std::vector<Float> &data)
+inline Vector makeVector(const std::vector<Float> &data)
 {
     Vector rs(data.size());
 
@@ -24,11 +24,11 @@ Vector makeVector(const std::vector<Float> &data)
  * @brief Check that a network manages to reduce its mean squared error below
  *        a threshold
  */
-bool checkLearning(Network *network,
-                   const std::vector<Vector> &input,
-                   const std::vector<Vector> &output,
-                   Float target_mse,
-                   unsigned int iterations)
+inline bool checkLearning(Network *network,
+                          const std::vector<Vector> &input,
+                          const std::vector<Vector> &output,
+                          Float target_mse,
+                          unsigned int iterations)
 {
     Float mse;
 

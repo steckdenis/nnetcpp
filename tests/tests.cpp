@@ -1,4 +1,5 @@
 #include "test_perceptron.h"
+#include "test_merge.h"
 
 #include <iostream>
 
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
     }
 
     TESTSUITE(TestPerceptron, "perceptron");
+    TESTSUITE(TestMerge, "merge");
 
     if(!has_suite)
     {
