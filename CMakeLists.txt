@@ -13,6 +13,7 @@ set(nnetcpp_SRCS
     abstractmergenode.cpp
     mergesum.cpp
     mergeproduct.cpp
+    gru.cpp
 )
 add_library(nnetcpp ${nnetcpp_SRCS})
 

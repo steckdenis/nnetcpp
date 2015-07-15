@@ -28,7 +28,8 @@ inline bool checkLearning(Network *network,
                           const std::vector<Vector> &input,
                           const std::vector<Vector> &output,
                           Float target_mse,
-                          unsigned int iterations)
+                          unsigned int iterations,
+                          bool verbose = true)
 {
     Float mse;
 
@@ -46,7 +47,9 @@ inline bool checkLearning(Network *network,
         // Stats
         mse /= Float(input.size());
 
-        std::cout << "Iteration " << iteration << ": mse = " << mse << std::endl;
+        if (verbose) {
+            std::cout << "Iteration " << iteration << ": mse = " << mse << std::endl;
+        }
 
         if (mse < target_mse) {
             // Learning was possible
@@ -54,11 +57,15 @@ inline bool checkLearning(Network *network,
         }
     }
 
-    // No learning possible, print the values for debugging
-    for (std::size_t i=0; i<input.size(); ++i) {
-        Vector v = network->predict(input[i]);
+    std::cout << "Final MSE = " << mse << std::endl;
 
-        std::cout << input[i] << ' ' << v << ' ' << output[i] << std::endl;
+    // No learning possible, print the values for debugging
+    if (verbose) {
+        for (std::size_t i=0; i<input.size(); ++i) {
+            Vector v = network->predict(input[i]);
+
+            std::cout << input[i] << ' ' << v << ' ' << output[i] << std::endl;
+        }
     }
 
     return mse < target_mse;   // No learning possible

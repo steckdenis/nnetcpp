@@ -1,7 +1,5 @@
 #include "abstractmergenode.h"
 
-#include <assert.h>
-
 AbstractMergeNode::AbstractMergeNode()
 {
 }
@@ -19,8 +17,6 @@ void AbstractMergeNode::addInput(Port *input)
         // First input to be added, its size defines the shape of the output
         _output.value = Vector::Zero(dim);
         _output.error = Vector::Zero(dim);
-    } else {
-        assert(dim == _inputs[0]->value.rows());
     }
 
     _inputs.push_back(input);

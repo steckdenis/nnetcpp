@@ -24,7 +24,7 @@ void MergeProduct::backward()
     // in order to produce the input error.
     for (Port *input : _inputs) {
         input->error.noalias() += _output.error.cwiseProduct(
-            _output.value.cwiseQuotient(input->value)
+            _output.value.cwiseQuotient((input->value.array() + 1e-20).matrix())
         );
     }
 }

@@ -66,9 +66,9 @@ namespace nnetcppinternal
 inline Float _exp(Float x)
 {
     // The constant 30 is also used by CLSTM
-    if (x < -30) return exp(-30);
-    if (x > 30) return exp(30);
-    return exp(x);
+    if (x < -20.0f) return std::exp(-20.0f);
+    if (x > 20.0f) return std::exp(20.0f);
+    return std::exp(x);
 }
 
 struct Tanh
@@ -103,10 +103,39 @@ struct dSigmoid
     }
 };
 
+struct OneMinus
+{
+    Float operator()(Float x) const
+    {
+        return 1.0f - x;
+    }
+};
+
+struct dOneMinus
+{
+    Float operator()(Float y) const
+    {
+        (void) y;
+        return -1.0f;
+    }
+};
+
 }
 
 // Instantiate the Activation templates
+/**
+ * @brief Tanh (output from -1 to 1) activation
+ */
 typedef Activation<nnetcppinternal::Tanh, nnetcppinternal::dTanh> TanhActivation;
+
+/**
+ * @brief Sigmoid (output from 0 to 1) activation
+ */
 typedef Activation<nnetcppinternal::Sigmoid, nnetcppinternal::dSigmoid> SigmoidActivation;
+
+/**
+ * @brief Output = 1 - input
+ */
+typedef Activation<nnetcppinternal::OneMinus, nnetcppinternal::dOneMinus> OneMinusActivation;
 
 #endif

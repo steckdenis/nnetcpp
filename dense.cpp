@@ -58,10 +58,10 @@ void Dense::update()
 
     // Perform the update using RMSprop
     _weights.noalias() -= (_learning_rate * _d_weights).cwiseQuotient(
-        (_avg_d_weights.cwiseSqrt().array() + 1e-30).matrix()
+        (_avg_d_weights.cwiseSqrt().array() + 1e-20).matrix()
     );
     _bias.noalias() -= (_learning_rate * _d_bias).cwiseQuotient(
-        (_avg_d_bias.cwiseSqrt().array() + 1e-30).matrix()
+        (_avg_d_bias.cwiseSqrt().array() + 1e-20).matrix()
     );
 }
 

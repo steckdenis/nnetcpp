@@ -1,5 +1,6 @@
 #include "test_perceptron.h"
 #include "test_merge.h"
+#include "test_gru.h"
 
 #include <iostream>
 
@@ -8,6 +9,8 @@
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
+
+#include <fenv.h>
 
 int main(int argc, char **argv)
 {
@@ -32,6 +35,7 @@ int main(int argc, char **argv)
 
     TESTSUITE(TestPerceptron, "perceptron");
     TESTSUITE(TestMerge, "merge");
+    TESTSUITE(TestGRU, "gru");
 
     if(!has_suite)
     {
@@ -39,6 +43,10 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    // Enable FPU exceptions so that NaN and infinites can be traced back
+    feenableexcept(FE_INVALID);
+
+    // Run the tests
     CppUnit::TestResult result;
 
     CppUnit::TestResultCollector collected_results;
