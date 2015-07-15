@@ -2,9 +2,17 @@
 
 #include <cmath>
 
+static Float _exp(Float x)
+{
+    // The constant 30 is also used by CLSTM
+    if (x < -30) return exp(-30);
+    if (x > 30) return exp(30);
+    return exp(x);
+}
+
 static Float _expmx(Float x)
 {
-    return std::exp(-x);
+    return _exp(-x);
 }
 
 static Float _tanh(Float x)
@@ -45,13 +53,14 @@ void Tanh::forward()
 
 void Tanh::backward()
 {
-    auto expmx = _output.value.unaryExpr(&_expmx).array();
-
-    _input->error.noalias() += _output.error.cwiseProduct(_output.value.unaryExpr(&_tanh_d));
+    _input->error.noalias() += _output.error.cwiseProduct(
+        (1.0f + _output.value.array().square()).matrix()
+    );
 }
 
 void Tanh::clearError()
 {
+    _output.error.setZero();
 }
 
 void Tanh::update()

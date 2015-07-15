@@ -3,12 +3,13 @@
 
 #include <abstractnode.h>
 #include <network.h>
+
 #include <iostream>
 
 /**
  * @brief Make a vector from a sequence of floats
  */
-Vector makeVector(const std::vector<Float> data)
+Vector makeVector(const std::vector<Float> &data)
 {
     Vector rs(data.size());
 
@@ -24,13 +25,14 @@ Vector makeVector(const std::vector<Float> data)
  *        a threshold
  */
 bool checkLearning(Network *network,
-                   const std::vector<Vector> input,
-                   const std::vector<Vector> output,
+                   const std::vector<Vector> &input,
+                   const std::vector<Vector> &output,
                    Float target_mse,
                    unsigned int iterations)
 {
     Float mse;
 
+    // Perform the iterations
     for (unsigned int iteration=0; iteration<iterations; ++iteration) {
         // Train the network over all the input/output samples
         mse = 0.0f;
@@ -48,7 +50,7 @@ bool checkLearning(Network *network,
 
         if (mse < target_mse) {
             // Learning was possible
-            return true;
+            break;
         }
     }
 
@@ -56,10 +58,10 @@ bool checkLearning(Network *network,
     for (std::size_t i=0; i<input.size(); ++i) {
         Vector v = network->predict(input[i]);
 
-        std::cout << input[i] << ';' << v << ';' << output[i] << std::endl;
+        std::cout << input[i] << ' ' << v << ' ' << output[i] << std::endl;
     }
 
-    return false;   // No learning possible
+    return mse < target_mse;   // No learning possible
 }
 
 #endif

@@ -43,8 +43,8 @@ void TestPerceptron::testLinear()
     Dense *dense2;
 
     net = new Network(1);
-    dense1 = new Dense(10, 0.05);
-    dense2 = new Dense(1, 0.05);
+    dense1 = new Dense(10, 0.01);
+    dense2 = new Dense(1, 0.01);
 
     dense1->setInput(net->inputPort());
     dense2->setInput(dense1->output());
@@ -66,25 +66,18 @@ void TestPerceptron::testTanh()
     std::vector<Vector> input;
     std::vector<Vector> output;
 
-    input.push_back(makeVector({-1.0}));
-    input.push_back(makeVector({-0.6}));
-    input.push_back(makeVector({-0.2}));
-    input.push_back(makeVector({0.2}));
-    input.push_back(makeVector({0.6}));
-    input.push_back(makeVector({1.0}));
+    for (int i=0; i<300; ++i) {
+        float x = float(i) / 100.0f - 1.0f;
 
-    output.push_back(makeVector({0.54}));
-    output.push_back(makeVector({0.82}));
-    output.push_back(makeVector({0.98}));
-    output.push_back(makeVector({0.98}));
-    output.push_back(makeVector({0.82}));
-    output.push_back(makeVector({0.54}));
+        input.push_back(makeVector({x}));
+        output.push_back(makeVector({std::sin(x)}));
+    }
 
     // Network with a single hidden layer (with tanh activation), 10 hidden neurons
     Network *net = new Network(1);
-    Dense *dense1 = new Dense(10, 0.01);
+    Dense *dense1 = new Dense(10, 0.001);
     Tanh *tanh1 = new Tanh;
-    Dense *dense2 = new Dense(1, 0.01);
+    Dense *dense2 = new Dense(1, 0.001);
     Tanh *tanh2 = new Tanh;
 
     dense1->setInput(net->inputPort());
@@ -99,7 +92,7 @@ void TestPerceptron::testTanh()
 
     CPPUNIT_ASSERT_MESSAGE(
         "Learning a cosinus function using 10 hidden neurons",
-        checkLearning(net, input, output, 0.04, 100)
+        checkLearning(net, input, output, 0.0005, 1000)
     );
 
     delete net;

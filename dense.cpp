@@ -21,7 +21,7 @@ void Dense::setInput(Port *input)
     _weights = Matrix::Random(outputs, inputs) * 0.01f;
     _d_weights = Matrix::Zero(outputs, inputs);
     _avg_d_weights = Matrix::Zero(outputs, inputs);
-    _bias = Vector::Zero(outputs);
+    _bias = Vector::Random(outputs) * 0.01f;
     _d_bias = Vector::Zero(outputs);
     _avg_d_bias = Vector::Zero(outputs);
 
@@ -46,16 +46,17 @@ void Dense::backward()
     _input->error.noalias() += _weights.transpose() * _output.error;
 
     // Update the gradient of the input parameters and biases
-    _d_weights.noalias() += _output.error * _input->value.transpose();
-    _d_bias.noalias() += _output.error;
-
-    // Keep a moving average of the gradients
-    _avg_d_weights = _decay * _avg_d_weights + (1.0f - _decay) * _d_weights.cwiseProduct(_d_weights);
-    _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.cwiseProduct(_d_bias);
+    _d_weights.noalias() -= _output.error * _input->value.transpose();
+    _d_bias.noalias() -= _output.error;
 }
 
 void Dense::update()
 {
+    // Keep a moving average of the gradients
+    _avg_d_weights = _decay * _avg_d_weights + (1.0f - _decay) * _d_weights.cwiseProduct(_d_weights);
+    _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.cwiseProduct(_d_bias);
+
+    // Perform the update using RMSprop
     _weights.noalias() -= (_learning_rate * _d_weights).cwiseQuotient(_avg_d_weights.cwiseSqrt());
     _bias.noalias() -= (_learning_rate * _d_bias).cwiseQuotient(_avg_d_bias.cwiseSqrt());
 }

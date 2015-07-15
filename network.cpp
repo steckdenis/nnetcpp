@@ -54,7 +54,7 @@ Float Network::setExpectedOutput(const Vector &output)
 {
     AbstractNode *last = _nodes.back();
 
-    return setError(last->output()->value - output);
+    return setError(output - last->output()->value);
 }
 
 Float Network::setError(const Vector &error)
@@ -81,6 +81,8 @@ void Network::update()
         node->update();
         node->clearError();
     }
+
+    _input_port.error.setZero();
 }
 
 Float Network::trainSample(const Vector &input, const Vector &output)
