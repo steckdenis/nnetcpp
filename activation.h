@@ -87,9 +87,26 @@ struct dTanh
     }
 };
 
+struct Sigmoid
+{
+    Float operator()(Float x) const
+    {
+        return 1.0f / (1.0f + _exp(-x));
+    }
+};
+
+struct dSigmoid
+{
+    Float operator()(Float y) const
+    {
+        return y * (1.0f - y);
+    }
+};
+
 }
 
 // Instantiate the Activation templates
 typedef Activation<nnetcppinternal::Tanh, nnetcppinternal::dTanh> TanhActivation;
+typedef Activation<nnetcppinternal::Sigmoid, nnetcppinternal::dSigmoid> SigmoidActivation;
 
 #endif
