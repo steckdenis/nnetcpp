@@ -54,11 +54,12 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     // Put everything in a list, in the order in which the forward pass will be run
     _nodes.push_back(loop_output_to_updates);
     _nodes.push_back(loop_output_to_resets);
-    _nodes.push_back(loop_reset_times_output_to_inputs);
 
     _nodes.push_back(resets);
     _nodes.push_back(reset_activation);
     _nodes.push_back(reset_times_output);
+
+    _nodes.push_back(loop_reset_times_output_to_inputs);
 
     _nodes.push_back(inputs);
     _nodes.push_back(input_activation);

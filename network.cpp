@@ -71,7 +71,7 @@ Float Network::setError(const Vector &error)
         _nodes[i]->backward();
     }
 
-    return error.cwiseProduct(error).mean();
+    return error.array().square().mean();
 }
 
 void Network::update()

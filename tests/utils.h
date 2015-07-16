@@ -57,7 +57,7 @@ inline bool checkLearning(Network *network,
         }
     }
 
-    std::cout << "Final MSE = " << mse << std::endl;
+    std::cout << "Final training MSE = " << mse << std::endl;
 
     // No learning possible, print the values for debugging
     if (verbose) {

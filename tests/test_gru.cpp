@@ -6,6 +6,7 @@
 #include <gru.h>
 
 #include <iostream>
+#include <stdlib.h>
 
 static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 {
@@ -70,13 +71,27 @@ void TestGRU::test()
     net->addNode(gru);
     net->addNode(out);
 
-    // Train the network on the input sequences
-    for (int iteration=0; iteration<100; ++iteration) {
-        std::cout << "Sequence iteration " << iteration << std::endl;
+    // Train the network on the input sequences (all but the last one)
+    for (int iteration=0; iteration<2000; ++iteration) {
+        int i = rand() % (int)inputs.size();
 
-        for (std::size_t i=0; i<inputs.size(); ++i) {
-            checkLearning(net, inputs[i], outputs[i], 0.0, 10, false);
-        }
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false);
+    }
+
+    // Test the network on all the input sequences (last one included)
+    std::cout << "Validation" << std::endl;
+
+    for (std::size_t i=0; i<inputs.size()-1; ++i) {
+        // NOTE: The MSE allowed is quite big, but this is required as correct
+        //       parity nevertheless has sometimes a big error, for instance if
+        //       the network overshoots (predicts 1.30 instead of 1, and -0.2
+        //       instead of 0). A bit of training is performed here so that the
+        //       network can recover from this overshoot (but has no time to learn
+        //       each sequence on the fly).
+        CPPUNIT_ASSERT_MESSAGE(
+            "A test vector failed the parity test",
+            checkLearning(net, inputs[i], outputs[i], 0.50, 3, true)
+        );
     }
 
     delete net;
