@@ -112,6 +112,23 @@ class Network
          */
         Float trainSample(const Vector &input, const Vector &output);
 
+        /**
+         * @brief Train the network on a dataset
+         *
+         * @param inputs Matrix having one column per input vector
+         * @param outputs Matrix having one column per output vector
+         * @param batch_size Number of vectors handled before a gradient update is performed
+         * @param epochs Number of epochs of training
+         * @param shuffle True if the vectors are shuffled between the epochs
+         *                (set to false if a sequence of observations has to be
+         *                learned).
+         */
+        void train(const Eigen::MatrixXf &inputs,
+                   const Eigen::MatrixXf &outputs,
+                   unsigned int batch_size,
+                   unsigned int epochs,
+                   bool shuffle);
+
     private:
         AbstractNode::Port _input_port;
 

@@ -97,7 +97,7 @@ void TestGRU::test()
     for (int iteration=0; iteration<2000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, false);
     }
 
     // Test the network on all the input sequences (last one included)
@@ -112,7 +112,7 @@ void TestGRU::test()
         //       each sequence on the fly).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.50, 3, true)
+            checkLearning(net, inputs[i], outputs[i], 0.50, 3, true, false)
         );
     }
 

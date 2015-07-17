@@ -23,6 +23,7 @@
 #include "network.h"
 
 #include <assert.h>
+#include <algorithm>
 
 Network::Network(unsigned int inputs)
 {
@@ -116,4 +117,42 @@ Float Network::trainSample(const Vector &input, const Vector &output)
     update();
 
     return error;
+}
+
+void Network::train(const Eigen::MatrixXf &inputs,
+                    const Eigen::MatrixXf &outputs,
+                    unsigned int batch_size,
+                    unsigned int epochs,
+                    bool shuffle)
+{
+    std::vector<int> indexes(inputs.cols());
+
+    for (int i=0; i<inputs.cols(); ++i) {
+        indexes[i] = i;
+    }
+
+    // Epochs
+    for (unsigned int epoch=0; epoch < epochs; ++epoch) {
+        // Shuffle the input vectors
+        if (shuffle) {
+            std::random_shuffle(indexes.begin(), indexes.end());
+        }
+
+        // Perform the training
+        unsigned int batch_remaining = batch_size;
+
+        for (int index : indexes) {
+            predict(inputs.col(index));
+            setExpectedOutput(outputs.col(index));
+
+            if (--batch_remaining == 0) {
+                batch_remaining = batch_size;
+
+                update();
+            }
+        }
+
+        // Reset the network
+        reset();
+    }
 }

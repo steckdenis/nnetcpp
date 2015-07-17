@@ -51,44 +51,37 @@ inline bool checkLearning(Network *network,
                           const std::vector<Vector> &output,
                           Float target_mse,
                           unsigned int iterations,
-                          bool verbose = true)
+                          bool verbose = true,
+                          bool shuffle = true)
 {
-    Float mse;
+    Eigen::MatrixXf inputs(input[0].rows(), input.size());
+    Eigen::MatrixXf outputs(output[0].rows(), output.size());
 
-    // Perform the iterations
-    for (unsigned int iteration=0; iteration<iterations; ++iteration) {
-        // Train the network over all the input/output samples
-        mse = 0.0f;
-
-        for (std::size_t i=0; i<input.size(); ++i) {
-            mse += network->trainSample(input[i], output[i]);
-        }
-
-        network->reset();
-
-        // Stats
-        mse /= Float(input.size());
-
-        if (verbose) {
-            std::cout << "Iteration " << iteration << ": mse = " << mse << std::endl;
-        }
-
-        if (mse < target_mse) {
-            // Learning was possible
-            break;
-        }
+    // Copy the vectors into their matrices
+    for (std::size_t i=0; i<input.size(); ++i) {
+        inputs.col(i) = input[i];
+        outputs.col(i) = output[i];
     }
 
-    std::cout << "Final training MSE = " << mse << std::endl;
+    // Train the network
+    network->train(inputs, outputs, 1, iterations, shuffle);
 
-    // No learning possible, print the values for debugging
-    if (verbose) {
-        for (std::size_t i=0; i<input.size(); ++i) {
-            Vector v = network->predict(input[i]);
+    // Check that learning was correct
+    Float mse = 0.0f;
 
+    for (std::size_t i=0; i<input.size(); ++i) {
+        Vector v = network->predict(input[i]);
+
+        mse += (v.array() - output[i].array()).square().mean();
+
+        if (verbose) {
             std::cout << input[i] << ' ' << v << ' ' << output[i] << std::endl;
         }
     }
+
+    mse /= float(input.size());
+
+    std::cout << "Final MSE: " << mse << std::endl;
 
     return mse < target_mse;   // No learning possible
 }

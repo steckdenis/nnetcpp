@@ -57,8 +57,8 @@ void TestMerge::testSum()
     net->addNode(sum);
 
     CPPUNIT_ASSERT_MESSAGE(
-        "Learning a linear function using no hidden layer",
-        checkLearning(net, input, output, 0.0001, 100)
+        "Learning a linear function using MergeSum",
+        checkLearning(net, input, output, 0.001, 1000)
     );
 
     delete net;
@@ -94,7 +94,7 @@ void TestMerge::testProduct()
     net->addNode(product);
 
     CPPUNIT_ASSERT_MESSAGE(
-        "Learning a linear function using no hidden layer",
+        "Learning a quadratic function using MergeProduct",
         checkLearning(net, input, output, 0.0001, 1000)
     );
 
