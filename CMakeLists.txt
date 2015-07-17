@@ -16,7 +16,10 @@ set(nnetcpp_SRCS
     mergeproduct.cpp
     gru.cpp
 )
+file(GLOB nnetcpp_HDRS *.h)
+
 add_library(nnetcpp ${nnetcpp_SRCS})
 install(TARGETS nnetcpp ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${nnetcpp_HDRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nnetcpp)
 
 add_subdirectory(tests)
