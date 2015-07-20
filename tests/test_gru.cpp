@@ -70,7 +70,7 @@ void TestGRU::test()
     };
 
     // Network with N GRU cells
-    static const unsigned int N = 100;
+    static const unsigned int N = 20;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, 0.005);
@@ -97,7 +97,7 @@ void TestGRU::test()
     for (int iteration=0; iteration<2000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, false);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 4, false, false);
     }
 
     // Test the network on all the input sequences (last one included)
@@ -107,12 +107,10 @@ void TestGRU::test()
         // NOTE: The MSE allowed is quite big, but this is required as correct
         //       parity nevertheless has sometimes a big error, for instance if
         //       the network overshoots (predicts 1.30 instead of 1, and -0.2
-        //       instead of 0). A bit of training is performed here so that the
-        //       network can recover from this overshoot (but has no time to learn
-        //       each sequence on the fly).
+        //       instead of 0).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.50, 3, true, false)
+            checkLearning(net, inputs[i], outputs[i], 0.50, 1, true, false)
         );
     }
 

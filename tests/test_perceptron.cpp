@@ -106,11 +106,13 @@ void TestPerceptron::testActivation()
         output.push_back(makeVector({std::cos(x)}));
     }
 
-    // Network with a single hidden layer (with tanh activation), 10 hidden neurons
+    // Network with a single hidden layer (with tanh activation), N hidden neurons
+    static const unsigned int N = 20;
+
     Network *net = new Network(1);
-    Dense *dense1 = new Dense(20, 0.001);
+    Dense *dense1 = new Dense(N, 3e-3);
     T *act1 = new T;
-    Dense *dense2 = new Dense(1, 0.001);
+    Dense *dense2 = new Dense(1, 3e-3);
 
     dense1->setInput(net->inputPort());
     act1->setInput(dense1->output());
@@ -121,8 +123,8 @@ void TestPerceptron::testActivation()
     net->addNode(dense2);
 
     CPPUNIT_ASSERT_MESSAGE(
-        "Learning a cosinus function using 20 hidden neurons",
-        checkLearning(net, input, output, 0.0001, 1000)
+        "Learning a cosinus function using a non-linear activation function",
+        checkLearning(net, input, output, 0.0001, 10000)
     );
 
     delete net;

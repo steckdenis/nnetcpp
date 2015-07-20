@@ -105,7 +105,7 @@ struct dTanh
 {
     Float operator()(Float y) const
     {
-        return (1.0f + y*y);
+        return 1.0f - y*y;
     }
 };
 
