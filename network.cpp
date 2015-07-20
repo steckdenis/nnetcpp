@@ -75,9 +75,23 @@ void Network::reset()
 
 Float Network::setExpectedOutput(const Vector &output)
 {
+    return setExpectedOutput(output, nullptr);
+}
+
+Float Network::setExpectedOutput(const Vector &output, const Vector &weights)
+{
+    return setExpectedOutput(output, &weights);
+}
+
+Float Network::setExpectedOutput(const Vector &output, const Vector *weights)
+{
     AbstractNode *last = _nodes.back();
 
-    return setError(output - last->output()->value);
+    if (weights == nullptr) {
+        return setError(output - last->output()->value);
+    } else {
+        return setError((output - last->output()->value).cwiseProduct(*weights));
+    }
 }
 
 Float Network::setError(const Vector &error)
@@ -110,10 +124,20 @@ void Network::update()
 
 Float Network::trainSample(const Vector &input, const Vector &output)
 {
+    return trainSample(input, output, nullptr);
+}
+
+Float Network::trainSample(const Vector &input, const Vector &output, const Vector &weights)
+{
+    return trainSample(input, output, &weights);
+}
+
+Float Network::trainSample(const Vector &input, const Vector &output, const Vector *weights)
+{
     Float error;
 
     predict(input);
-    error = setExpectedOutput(output);
+    error = setExpectedOutput(output, weights);
     update();
 
     return error;
@@ -121,6 +145,26 @@ Float Network::trainSample(const Vector &input, const Vector &output)
 
 void Network::train(const Eigen::MatrixXf &inputs,
                     const Eigen::MatrixXf &outputs,
+                    unsigned int batch_size,
+                    unsigned int epochs,
+                    bool shuffle)
+{
+    train(inputs, outputs, nullptr, batch_size, epochs, shuffle);
+}
+
+void Network::train(const Eigen::MatrixXf &inputs,
+                    const Eigen::MatrixXf &outputs,
+                    const Eigen::MatrixXf &weights,
+                    unsigned int batch_size,
+                    unsigned int epochs,
+                    bool shuffle)
+{
+    train(inputs, outputs, &weights, batch_size, epochs, shuffle);
+}
+
+void Network::train(const Eigen::MatrixXf &inputs,
+                    const Eigen::MatrixXf &outputs,
+                    const Eigen::MatrixXf *weights,
                     unsigned int batch_size,
                     unsigned int epochs,
                     bool shuffle)
@@ -143,7 +187,12 @@ void Network::train(const Eigen::MatrixXf &inputs,
 
         for (int index : indexes) {
             predict(inputs.col(index));
-            setExpectedOutput(outputs.col(index));
+
+            if (weights == nullptr) {
+                setExpectedOutput(outputs.col(index));
+            } else {
+                setExpectedOutput(outputs.col(index), weights->col(index));
+            }
 
             if (--batch_remaining == 0) {
                 batch_remaining = batch_size;

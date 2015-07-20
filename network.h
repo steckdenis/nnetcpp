@@ -90,6 +90,13 @@ class Network
         Float setExpectedOutput(const Vector &output);
 
         /**
+         * @brief Set the expected output of this network and compute the error
+         *        using an error weight vector.
+         * @sa train
+         */
+        Float setExpectedOutput(const Vector &output, const Vector &weights);
+
+        /**
          * @brief Set the error signals at the output of this network and
          *        back-propagate it, without performing any gradient update
          *
@@ -113,6 +120,17 @@ class Network
         Float trainSample(const Vector &input, const Vector &output);
 
         /**
+         * @brief Perform one gradient update for training, multiplying the error
+         *        vector by @p weights
+         *
+         * This allows to define which output neurons have the more importance
+         * when backpropagating the error.
+         *
+         * @return Mean squared error over the output neurons
+         */
+        Float trainSample(const Vector &input, const Vector &output, const Vector &weights);
+
+        /**
          * @brief Train the network on a dataset
          *
          * @param inputs Matrix having one column per input vector
@@ -125,6 +143,29 @@ class Network
          */
         void train(const Eigen::MatrixXf &inputs,
                    const Eigen::MatrixXf &outputs,
+                   unsigned int batch_size,
+                   unsigned int epochs,
+                   bool shuffle);
+
+        /**
+         * @brief Train the network on a dataset, using weights for the output neurons
+         *
+         * @param weights Matrix having one column per weight vector. The weight
+         *                vectors are used as described in trainSample().
+         */
+        void train(const Eigen::MatrixXf &inputs,
+                   const Eigen::MatrixXf &outputs,
+                   const Eigen::MatrixXf &weights,
+                   unsigned int batch_size,
+                   unsigned int epochs,
+                   bool shuffle);
+
+    private:
+        Float setExpectedOutput(const Vector &output, const Vector *weights);
+        Float trainSample(const Vector &input, const Vector &output, const Vector *weights);
+        void train(const Eigen::MatrixXf &inputs,
+                   const Eigen::MatrixXf &outputs,
+                   const Eigen::MatrixXf *weights,
                    unsigned int batch_size,
                    unsigned int epochs,
                    bool shuffle);
