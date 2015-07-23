@@ -15,6 +15,7 @@ set(nnetcpp_SRCS
     mergesum.cpp
     mergeproduct.cpp
     gru.cpp
+    lstm.cpp
 )
 file(GLOB nnetcpp_HDRS *.h)
 

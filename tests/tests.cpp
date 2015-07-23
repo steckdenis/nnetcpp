@@ -22,7 +22,7 @@
 
 #include "test_perceptron.h"
 #include "test_merge.h"
-#include "test_gru.h"
+#include "test_recurrent.h"
 
 #include <iostream>
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
     TESTSUITE(TestPerceptron, "perceptron");
     TESTSUITE(TestMerge, "merge");
-    TESTSUITE(TestGRU, "gru");
+    TESTSUITE(TestRecurrent, "recurrent");
 
     if(!has_suite)
     {

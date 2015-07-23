@@ -20,12 +20,13 @@
  * THE SOFTWARE.
  */
 
-#include "test_gru.h"
+#include "test_recurrent.h"
 #include "utils.h"
 
 #include <network.h>
 #include <dense.h>
 #include <gru.h>
+#include <lstm.h>
 
 #include <iostream>
 #include <stdlib.h>
@@ -41,7 +42,71 @@ static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
     return rs;
 }
 
-void TestGRU::test()
+void TestRecurrent::testGRU()
+{
+    // Network with N GRU cells
+    static const unsigned int N = 20;
+
+    Network *net = new Network(1);
+    Dense *dense_in = new Dense(N, 0.005);
+    Dense *dense_z = new Dense(N, 0.005);
+    Dense *dense_r = new Dense(N, 0.005);
+    GRU *gru = new GRU(N, 0.005);
+    Dense *out = new Dense(1, 0.005);
+
+    dense_in->setInput(net->inputPort());
+    dense_z->setInput(net->inputPort());
+    dense_r->setInput(net->inputPort());
+    gru->addInput(dense_in->output());
+    gru->addZ(dense_z->output());
+    gru->addR(dense_r->output());
+    out->setInput(gru->output());
+
+    net->addNode(dense_in);
+    net->addNode(dense_z);
+    net->addNode(dense_r);
+    net->addNode(gru);
+    net->addNode(out);
+
+    // Test this network
+    testNetwork(net);
+}
+
+void TestRecurrent::testLSTM()
+{
+    // Network with N LSTM cells
+    static const unsigned int N = 100;
+
+    Network *net = new Network(1);
+    Dense *dense_in = new Dense(N, 0.005);
+    Dense *dense_ingate = new Dense(N, 0.005);
+    Dense *dense_outgate = new Dense(N, 0.005);
+    Dense *dense_forgetgate = new Dense(N, 0.005);
+    LSTM *lstm = new LSTM(N, 0.005);
+    Dense *out = new Dense(1, 0.005);
+
+    dense_in->setInput(net->inputPort());
+    dense_ingate->setInput(net->inputPort());
+    dense_outgate->setInput(net->inputPort());
+    dense_forgetgate->setInput(net->inputPort());
+    lstm->addInput(dense_in->output());
+    lstm->addInGate(dense_ingate->output());
+    lstm->addOutGate(dense_outgate->output());
+    lstm->addForgetGate(dense_forgetgate->output());
+    out->setInput(lstm->output());
+
+    net->addNode(dense_in);
+    net->addNode(dense_ingate);
+    net->addNode(dense_outgate);
+    net->addNode(dense_forgetgate);
+    net->addNode(lstm);
+    net->addNode(out);
+
+    // Test this network
+    testNetwork(net);
+}
+
+void TestRecurrent::testNetwork(Network *net)
 {
     // Training vectors for the "compute parity" task
     std::vector<std::vector<Vector>> inputs {
@@ -68,30 +133,6 @@ void TestGRU::test()
         makeSequence({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f}),
         makeSequence({0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f}),
     };
-
-    // Network with N GRU cells
-    static const unsigned int N = 20;
-
-    Network *net = new Network(1);
-    Dense *dense_in = new Dense(N, 0.005);
-    Dense *dense_z = new Dense(N, 0.005);
-    Dense *dense_r = new Dense(N, 0.005);
-    GRU *gru = new GRU(N, 0.005);
-    Dense *out = new Dense(1, 0.005);
-
-    dense_in->setInput(net->inputPort());
-    dense_z->setInput(net->inputPort());
-    dense_r->setInput(net->inputPort());
-    gru->addInput(dense_in->output());
-    gru->addZ(dense_z->output());
-    gru->addR(dense_r->output());
-    out->setInput(gru->output());
-
-    net->addNode(dense_in);
-    net->addNode(dense_z);
-    net->addNode(dense_r);
-    net->addNode(gru);
-    net->addNode(out);
 
     // Train the network on the input sequences (all but the last one)
     for (int iteration=0; iteration<2000; ++iteration) {
