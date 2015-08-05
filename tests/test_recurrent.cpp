@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -75,7 +75,7 @@ void TestRecurrent::testGRU()
 void TestRecurrent::testLSTM()
 {
     // Network with N LSTM cells
-    static const unsigned int N = 100;
+    static const unsigned int N = 40;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, 0.005);
@@ -135,23 +135,23 @@ void TestRecurrent::testNetwork(Network *net)
     };
 
     // Train the network on the input sequences (all but the last one)
-    for (int iteration=0; iteration<2000; ++iteration) {
+    for (int iteration=0; iteration<80000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 4, false, false);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 3, false, false);
     }
 
     // Test the network on all the input sequences (last one included)
     std::cout << "Validation" << std::endl;
 
-    for (std::size_t i=0; i<inputs.size()-1; ++i) {
+    for (std::size_t i=0; i<inputs.size(); ++i) {
         // NOTE: The MSE allowed is quite big, but this is required as correct
         //       parity nevertheless has sometimes a big error, for instance if
         //       the network overshoots (predicts 1.30 instead of 1, and -0.2
         //       instead of 0).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.50, 1, true, false)
+            checkLearning(net, inputs[i], outputs[i], 0.30, 1, true, false)
         );
     }
 
