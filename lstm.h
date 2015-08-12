@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,7 @@
 #ifndef __LSTM_H__
 #define __LSTM_H__
 
-#include "abstractnode.h"
+#include "abstractnetworknode.h"
 
 class MergeSum;
 class MergeProduct;
@@ -35,7 +35,7 @@ class MergeProduct;
  * each time step, the value it produces depends on all the previous time steps.
  * An episode is finished by calling reset(), which Network::reset() does.
  */
-class LSTM : public AbstractNode
+class LSTM : public AbstractNetworkNode
 {
     public:
         /**
@@ -49,7 +49,6 @@ class LSTM : public AbstractNode
          *       forgetGate. See GRU::GRU for advice about those connections.
          */
         LSTM(unsigned int size, Float learning_rate, Float decay = 0.9f);
-        virtual ~LSTM();
 
         /**
          * @brief Add an X input to this network
@@ -72,11 +71,6 @@ class LSTM : public AbstractNode
         void addForgetGate(Port *forget);
 
         virtual Port* output();
-        virtual void forward();
-        virtual void backward();
-        virtual void update();
-        virtual void clearError();
-
         virtual void reset();
 
     private:
@@ -86,8 +80,6 @@ class LSTM : public AbstractNode
         MergeSum *_forgetgates;
         MergeSum *_cells;
         MergeProduct *_output;
-
-        std::vector<AbstractNode *> _nodes;
 
 };
 

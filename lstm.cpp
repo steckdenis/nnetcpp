@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -83,25 +83,25 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     loop_output_to_input->setInput(cells_times_output_gate->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
-    _nodes.push_back(loop_output_to_forget_gate);
-    _nodes.push_back(loop_output_to_input);
-    _nodes.push_back(loop_output_to_input_gate);
-    _nodes.push_back(loop_output_to_output_gate);
+    addNode(loop_output_to_forget_gate);
+    addNode(loop_output_to_input);
+    addNode(loop_output_to_input_gate);
+    addNode(loop_output_to_output_gate);
 
-    _nodes.push_back(inputs);
-    _nodes.push_back(input_activation);
-    _nodes.push_back(input_gate);
-    _nodes.push_back(input_gate_activation);
-    _nodes.push_back(forget_gate);
-    _nodes.push_back(forget_gate_activation);
-    _nodes.push_back(output_gate);
-    _nodes.push_back(output_gate_activation);
+    addNode(inputs);
+    addNode(input_activation);
+    addNode(input_gate);
+    addNode(input_gate_activation);
+    addNode(forget_gate);
+    addNode(forget_gate_activation);
+    addNode(output_gate);
+    addNode(output_gate_activation);
 
-    _nodes.push_back(input_times_input_gate);
-    _nodes.push_back(cells_times_forget_gate);
-    _nodes.push_back(cells);
-    _nodes.push_back(cells_activation);
-    _nodes.push_back(cells_times_output_gate);
+    addNode(input_times_input_gate);
+    addNode(cells_times_forget_gate);
+    addNode(cells);
+    addNode(cells_activation);
+    addNode(cells_times_output_gate);
 
     // Ensure that h(0) = 0
     _inputs = inputs;
@@ -112,13 +112,6 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     _output = cells_times_output_gate;
 
     reset();
-}
-
-LSTM::~LSTM()
-{
-    for (AbstractNode *node : _nodes) {
-        delete node;
-    }
 }
 
 AbstractNode::Port *LSTM::output()
@@ -144,34 +137,6 @@ void LSTM::addOutGate(Port *out)
 void LSTM::addForgetGate(Port *forget)
 {
     _forgetgates->addInput(forget);
-}
-
-void LSTM::forward()
-{
-    for (AbstractNode *node : _nodes) {
-        node->forward();
-    }
-}
-
-void LSTM::backward()
-{
-    for (int i=_nodes.size()-1; i>=0; --i) {
-        _nodes[i]->backward();
-    }
-}
-
-void LSTM::clearError()
-{
-    for (AbstractNode *node : _nodes) {
-        node->clearError();
-    }
-}
-
-void LSTM::update()
-{
-    for (AbstractNode *node : _nodes) {
-        node->update();
-    }
 }
 
 void LSTM::reset()

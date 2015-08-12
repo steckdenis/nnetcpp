@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -74,25 +74,25 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     loop_reset_times_output_to_inputs->setInput(reset_times_output->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
-    _nodes.push_back(loop_output_to_updates);
-    _nodes.push_back(loop_output_to_resets);
+    addNode(loop_output_to_updates);
+    addNode(loop_output_to_resets);
 
-    _nodes.push_back(resets);
-    _nodes.push_back(reset_activation);
-    _nodes.push_back(reset_times_output);
+    addNode(resets);
+    addNode(reset_activation);
+    addNode(reset_times_output);
 
-    _nodes.push_back(loop_reset_times_output_to_inputs);
+    addNode(loop_reset_times_output_to_inputs);
 
-    _nodes.push_back(inputs);
-    _nodes.push_back(input_activation);
+    addNode(inputs);
+    addNode(input_activation);
 
-    _nodes.push_back(updates);
-    _nodes.push_back(update_activation);
-    _nodes.push_back(oneminus_update_activation);
-    _nodes.push_back(update_times_output);
-    _nodes.push_back(oneminus_update_times_input);
+    addNode(updates);
+    addNode(update_activation);
+    addNode(oneminus_update_activation);
+    addNode(update_times_output);
+    addNode(oneminus_update_times_input);
 
-    _nodes.push_back(output);
+    addNode(output);
 
     // Ensure that h(0) = 0
     _inputs = inputs;
@@ -101,13 +101,6 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     _output = output;
 
     reset();
-}
-
-GRU::~GRU()
-{
-    for (AbstractNode *node : _nodes) {
-        delete node;
-    }
 }
 
 AbstractNode::Port *GRU::output()
@@ -128,34 +121,6 @@ void GRU::addR(Port *r)
 void GRU::addZ(Port *z)
 {
     _updates->addInput(z);
-}
-
-void GRU::forward()
-{
-    for (AbstractNode *node : _nodes) {
-        node->forward();
-    }
-}
-
-void GRU::backward()
-{
-    for (int i=_nodes.size()-1; i>=0; --i) {
-        _nodes[i]->backward();
-    }
-}
-
-void GRU::clearError()
-{
-    for (AbstractNode *node : _nodes) {
-        node->clearError();
-    }
-}
-
-void GRU::update()
-{
-    for (AbstractNode *node : _nodes) {
-        node->update();
-    }
 }
 
 void GRU::reset()

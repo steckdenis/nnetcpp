@@ -12,6 +12,7 @@ set(nnetcpp_SRCS
     network.cpp
     dense.cpp
     abstractmergenode.cpp
+    abstractnetworknode.cpp
     mergesum.cpp
     mergeproduct.cpp
     gru.cpp

@@ -45,7 +45,7 @@ static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 void TestRecurrent::testGRU()
 {
     // Network with N GRU cells
-    static const unsigned int N = 20;
+    static const unsigned int N = 40;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, 0.005);

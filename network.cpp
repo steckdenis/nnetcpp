@@ -175,6 +175,9 @@ void Network::train(const Eigen::MatrixXf &inputs,
         indexes[i] = i;
     }
 
+    // Reset the network before any learning
+    reset();
+
     // Epochs
     for (unsigned int epoch=0; epoch < epochs; ++epoch) {
         // Shuffle the input vectors

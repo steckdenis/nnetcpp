@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,7 @@
 #ifndef __GRU_H__
 #define __GRU_H__
 
-#include "abstractnode.h"
+#include "abstractnetworknode.h"
 
 class MergeSum;
 
@@ -34,7 +34,7 @@ class MergeSum;
  * each time step, the value it produces depends on all the previous time steps.
  * An episode is finished by calling reset(), which Network::reset() does.
  */
-class GRU : public AbstractNode
+class GRU : public AbstractNetworkNode
 {
     public:
         /**
@@ -48,7 +48,6 @@ class GRU : public AbstractNode
          *       have X -> dense1 -> input, X -> dense2 -> Z and X -> dense3 -> R).
          */
         GRU(unsigned int size, Float learning_rate, Float decay = 0.9f);
-        virtual ~GRU();
 
         /**
          * @brief Add an X input to this network
@@ -66,11 +65,6 @@ class GRU : public AbstractNode
         void addR(Port *r);
 
         virtual Port* output();
-        virtual void forward();
-        virtual void backward();
-        virtual void update();
-        virtual void clearError();
-
         virtual void reset();
 
     private:
@@ -78,8 +72,6 @@ class GRU : public AbstractNode
         MergeSum *_updates;
         MergeSum *_resets;
         MergeSum *_output;
-
-        std::vector<AbstractNode *> _nodes;
 
 };
 
