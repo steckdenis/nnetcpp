@@ -88,8 +88,8 @@ namespace nnetcppinternal
 inline Float _exp(Float x)
 {
     // The constant 30 is also used by CLSTM
-    if (x < -20.0f) return std::exp(-20.0f);
-    if (x > 20.0f) return std::exp(20.0f);
+    if (x < -30.0f) return std::exp(-30.0f);
+    if (x > 30.0f) return std::exp(30.0f);
     return std::exp(x);
 }
 
