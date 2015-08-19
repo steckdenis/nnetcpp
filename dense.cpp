@@ -22,10 +22,11 @@
 
 #include "dense.h"
 
-Dense::Dense(unsigned int outputs, Float learning_rate, Float decay)
+Dense::Dense(unsigned int outputs, Float learning_rate, Float decay, bool bias_initialized_at_one)
 : _input(nullptr),
   _learning_rate(learning_rate),
-  _decay(decay)
+  _decay(decay),
+  _bias_initialized_at_one(bias_initialized_at_one)
 {
     // Prepare the output port
     _output.error.resize(outputs);
@@ -43,9 +44,14 @@ void Dense::setInput(Port *input)
     _weights = Matrix::Random(outputs, inputs) * 0.01f;
     _d_weights = Matrix::Zero(outputs, inputs);
     _avg_d_weights = Matrix::Zero(outputs, inputs);
-    _bias = Vector::Random(outputs) * 0.01f;
     _d_bias = Vector::Zero(outputs);
     _avg_d_bias = Vector::Zero(outputs);
+
+    if (_bias_initialized_at_one) {
+        _bias = Vector::Ones(outputs);
+    } else {
+        _bias = Vector::Random(outputs) * 0.01f;
+    }
 
     // Clear the error, so that the error is initialized for the first backpropagation
     // step.

@@ -34,7 +34,7 @@ class Dense : public AbstractNode
         /**
          * @brief Make a dense connection between an input and the output of this node
          */
-        Dense(unsigned int outputs, Float learning_rate, Float decay = 0.9f);
+        Dense(unsigned int outputs, Float learning_rate, Float decay = 0.9f, bool bias_initialized_at_one = false);
 
         /**
          * @brief Set the input port of this node
@@ -53,6 +53,7 @@ class Dense : public AbstractNode
         Port *_input;
         Float _learning_rate;
         Float _decay;
+        bool _bias_initialized_at_one;
 
         Port _output;
 
