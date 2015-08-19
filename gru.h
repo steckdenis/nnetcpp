@@ -23,7 +23,7 @@
 #ifndef __GRU_H__
 #define __GRU_H__
 
-#include "abstractnetworknode.h"
+#include "abstractrecurrentnetworknode.h"
 #include "activation.h"
 
 class MergeSum;
@@ -35,7 +35,7 @@ class MergeSum;
  * each time step, the value it produces depends on all the previous time steps.
  * An episode is finished by calling reset(), which Network::reset() does.
  */
-class GRU : public AbstractNetworkNode
+class GRU : public AbstractRecurrentNetworkNode
 {
     public:
         /**
@@ -49,7 +49,6 @@ class GRU : public AbstractNetworkNode
          *       have X -> dense1 -> input, X -> dense2 -> Z and X -> dense3 -> R).
          */
         GRU(unsigned int size, Float learning_rate, Float decay = 0.9f);
-        ~GRU();
 
         /**
          * @brief Add an X input to this network
@@ -67,9 +66,6 @@ class GRU : public AbstractNetworkNode
         void addR(Port *r);
 
         virtual Port* output();
-        virtual void forward();
-        virtual void backward();
-        virtual void reset();
 
         virtual void setCurrentTimestep(unsigned int timestep);
 

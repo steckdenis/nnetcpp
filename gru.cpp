@@ -28,8 +28,7 @@
 #include <assert.h>
 
 GRU::GRU(unsigned int size, Float learning_rate, Float decay)
-: _timestep(0),
-  _size(size)
+: AbstractRecurrentNetworkNode(size)
 {
     // Intantiate all the nodes used by a GRU cell
     MergeSum *inputs = new MergeSum;
@@ -81,7 +80,7 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     loop_reset_times_output_to_inputs->setInput(reset_times_output->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
-    addNode(loop_output_to_updates);        // setCurrentTimeStep has properly set the output of real_output and recurrent_output, so these loops can be used.
+    addNode(loop_output_to_updates);            // setCurrentTimeStep has properly set the output of real_output and recurrent_output, so these loops can be used.
     addNode(loop_output_to_resets);
 
     addNode(resets);
@@ -103,6 +102,9 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     addNode(recurrent_output);                   // This line and the next one allow the cell to fully reach time step t, and allow error from t+1 to flow back in the entire cell
     addNode(real_output);
 
+    // Register the recurrent output as a recurrent node
+    addRecurrentNode(recurrent_output);
+
     // Ensure that h(0) = 0
     _inputs = inputs;
     _resets = resets;
@@ -110,12 +112,6 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     _real_output = real_output;
     _recurrent_output = recurrent_output;
 
-    reset();
-}
-
-GRU::~GRU()
-{
-    // Ensure that the storage is emptied
     reset();
 }
 
@@ -139,70 +135,15 @@ void GRU::addZ(Port *z)
     _updates->addInput(z);
 }
 
-void GRU::forward()
-{
-    AbstractNetworkNode::forward();
-
-    // Copy the value of output to the storage
-    assert(_storage.size() > _timestep);
-
-    _storage[_timestep]->value = _recurrent_output->output()->value;
-}
-
-void GRU::backward()
-{
-    AbstractNetworkNode::backward();
-
-    // Copy the error of the recurrence in the storage at previous time step
-    assert(_storage.size() > _timestep);
-
-    if (_timestep > 0) {
-        _storage[_timestep - 1]->error = _recurrent_output->output()->error;
-    }
-}
-
-void GRU::reset()
-{
-    AbstractNode::reset();
-
-    // Clear the storage
-    for (Port *port : _storage) {
-        delete port;
-    }
-
-    _storage.clear();
-}
-
 void GRU::setCurrentTimestep(unsigned int timestep)
 {
     assert(timestep <= _storage.size());
 
-    // Let AbstractNetworkNode reset the error signals of all the nodes in the cell.
-    AbstractNetworkNode::setCurrentTimestep(timestep);
+    // Handle _recurrent_output (set with setRecurrentNode)
+    AbstractRecurrentNetworkNode::setCurrentTimestep(timestep);
 
-    // Add a new port if needed
-    if (timestep == _storage.size()) {
-        _storage.push_back(new Port);
-
-        _storage.back()->value = Vector::Zero(_size);
-        _storage.back()->error = Vector::Zero(_size);
-    }
-
-    if (timestep > 0) {
-        // Set the value of the recurrent connections to the value at time t-1
-        _recurrent_output->output()->value = _storage[timestep - 1]->value;
-        _real_output->output()->value = _storage[timestep - 1]->value;
-    } else {
-        // Reset the recurrent values
-        _recurrent_output->output()->value.setZero();
-        _real_output->output()->value.setZero();
-    }
-
-    // Set the error of the recurrent output to the error computed at time t
-    // (and keep the error of real_output to zero, it will receive its error from
-    // the outer world)
-    _recurrent_output->output()->error = _storage[timestep]->error;
-
-    // Use the timestep
-    _timestep = timestep;
+    // Ensure that _real_output has the same value than _recurrent_output, because
+    // it is also used at some places. Keep its error to zero, because it will
+    // receive it from the outside world and not from any recurrent connection
+    _real_output->output()->value = _recurrent_output->output()->value;
 }
