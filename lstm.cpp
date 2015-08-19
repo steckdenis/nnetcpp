@@ -27,6 +27,7 @@
 #include "mergesum.h"
 
 LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
+: AbstractRecurrentNetworkNode(size)
 {
     // Intantiate all the nodes used by a LSTM cell
     MergeSum *inputs = new MergeSum;
@@ -44,12 +45,13 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     MergeProduct *input_times_input_gate = new MergeProduct;
     MergeProduct *cells_times_forget_gate = new MergeProduct;
     MergeSum *cells = new MergeSum;
+    LinearActivation *cells_recurrent = new LinearActivation;
     TanhActivation *cells_activation = new TanhActivation;
     MergeProduct *cells_times_output_gate = new MergeProduct;
 
     Dense *loop_output_to_output_gate = new Dense(size, learning_rate, decay);
     Dense *loop_output_to_input_gate = new Dense(size, learning_rate, decay);
-    Dense *loop_output_to_forget_gate = new Dense(size, learning_rate, decay);
+    Dense *loop_output_to_forget_gate = new Dense(size, learning_rate, decay, true);
     Dense *loop_output_to_input = new Dense(size, learning_rate, decay);
 
     // Wire-up everything, taking care that only outputs with an already-known
@@ -68,10 +70,11 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     input_times_input_gate->addInput(input_activation->output());
 
     cells_times_forget_gate->addInput(forget_gate_activation->output());
-    cells_times_forget_gate->addInput(cells->output());
+    cells_times_forget_gate->addInput(cells_recurrent->output());           // cells(t-1) * forget
 
     cells->addInput(input_times_input_gate->output());
     cells->addInput(cells_times_forget_gate->output());
+    cells_recurrent->setInput(cells->output());
     cells_activation->setInput(cells->output());
 
     cells_times_output_gate->addInput(output_gate_activation->output());
@@ -83,7 +86,7 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     loop_output_to_input->setInput(cells_times_output_gate->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
-    addNode(loop_output_to_forget_gate);
+    addNode(loop_output_to_forget_gate);    // The output has been restored from the recurrent storage and can be used here
     addNode(loop_output_to_input);
     addNode(loop_output_to_input_gate);
     addNode(loop_output_to_output_gate);
@@ -100,8 +103,14 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     addNode(input_times_input_gate);
     addNode(cells_times_forget_gate);
     addNode(cells);
+    addNode(cells_recurrent);               // Allow the value of the cells to be propagated to the next time step, and the error of cells_recurrent to be added to cells.
     addNode(cells_activation);
     addNode(cells_times_output_gate);
+
+    // cells_recurrent (real recurrence) and output need to be registered as
+    // recurrent nodes, because their value needs to persist between time steps
+    addRecurrentNode(cells_recurrent);
+    addRecurrentNode(cells_times_output_gate);
 
     // Ensure that h(0) = 0
     _inputs = inputs;
@@ -139,16 +148,14 @@ void LSTM::addForgetGate(Port *forget)
     _forgetgates->addInput(forget);
 }
 
-void LSTM::reset()
+void LSTM::setCurrentTimestep(unsigned int timestep)
 {
-    AbstractNode::reset();
+    assert(timestep <= _storage.size());
 
-    // Clear the content of the memory cells
-    _cells->output()->value.setZero();
-    _cells->output()->error.setZero();
+    // Handle _cells and _output
+    AbstractRecurrentNetworkNode::setCurrentTimestep(timestep);
 
-    // Clear the output, so that the different loops from output to ???gate
-    // will not propagate invalid data
-    _output->output()->value.setZero();
+    // Clear the error of _output, because it will receive its error from the nodes
+    // connected to the output of LSTM, not from any recurrent connection.
     _output->output()->error.setZero();
 }

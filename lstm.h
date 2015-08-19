@@ -23,7 +23,7 @@
 #ifndef __LSTM_H__
 #define __LSTM_H__
 
-#include "abstractnetworknode.h"
+#include "abstractrecurrentnetworknode.h"
 
 class MergeSum;
 class MergeProduct;
@@ -35,7 +35,7 @@ class MergeProduct;
  * each time step, the value it produces depends on all the previous time steps.
  * An episode is finished by calling reset(), which Network::reset() does.
  */
-class LSTM : public AbstractNetworkNode
+class LSTM : public AbstractRecurrentNetworkNode
 {
     public:
         /**
@@ -71,7 +71,7 @@ class LSTM : public AbstractNetworkNode
         void addForgetGate(Port *forget);
 
         virtual Port* output();
-        virtual void reset();
+        virtual void setCurrentTimestep(unsigned int timestep);
 
     private:
         MergeSum *_inputs;

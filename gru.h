@@ -66,7 +66,6 @@ class GRU : public AbstractRecurrentNetworkNode
         void addR(Port *r);
 
         virtual Port* output();
-
         virtual void setCurrentTimestep(unsigned int timestep);
 
     private:
@@ -75,10 +74,6 @@ class GRU : public AbstractRecurrentNetworkNode
         MergeSum *_resets;
         LinearActivation *_real_output;
         LinearActivation *_recurrent_output;
-
-        std::vector<Port *> _storage;   /*!< @brief Value of the recurrent connection at each time step */
-        unsigned int _timestep;
-        unsigned int _size;
 };
 
 #endif

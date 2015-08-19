@@ -71,13 +71,13 @@ void TestRecurrent::testGRU()
     net->addNode(out);
 
     // Test this network
-    testNetwork(net);
+    testNetwork(net, 0.10);
 }
 
 void TestRecurrent::testLSTM()
 {
     // Network with N LSTM cells
-    static const unsigned int N = 40;
+    static const unsigned int N = 100;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, learning_rate);
@@ -105,10 +105,10 @@ void TestRecurrent::testLSTM()
     net->addNode(out);
 
     // Test this network
-    testNetwork(net);
+    testNetwork(net, 0.20);
 }
 
-void TestRecurrent::testNetwork(Network *net)
+void TestRecurrent::testNetwork(Network *net, float target)
 {
     // Training vectors for the "compute parity" task
     std::vector<std::vector<Vector>> inputs {
@@ -140,7 +140,7 @@ void TestRecurrent::testNetwork(Network *net)
     for (int iteration=0; iteration<50000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, true);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, true, true);
     }
 
     // Test the network on all the input sequences (last one included)
@@ -153,7 +153,7 @@ void TestRecurrent::testNetwork(Network *net)
         //       instead of 0).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.10, 1, true, true)
+            checkLearning(net, inputs[i], outputs[i], target, 1, true, true)
         );
     }
 

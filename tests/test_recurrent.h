@@ -40,7 +40,7 @@ class TestRecurrent : public CppUnit::TestCase
         void testLSTM();
 
     private:
-        void testNetwork(Network *net);
+        void testNetwork(Network *net, float target);
 };
 
 #endif
