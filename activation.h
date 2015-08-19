@@ -142,6 +142,23 @@ struct dOneMinus
     }
 };
 
+struct Linear
+{
+    Float operator()(Float x) const
+    {
+        return x;
+    }
+};
+
+struct dLinear
+{
+    Float operator()(Float y) const
+    {
+        (void) y;
+        return 1.0f;
+    }
+};
+
 }
 
 // Instantiate the Activation templates
@@ -159,5 +176,10 @@ typedef Activation<nnetcppinternal::Sigmoid, nnetcppinternal::dSigmoid> SigmoidA
  * @brief Output = 1 - input
  */
 typedef Activation<nnetcppinternal::OneMinus, nnetcppinternal::dOneMinus> OneMinusActivation;
+
+/**
+ * @brief Output = input
+ */
+typedef Activation<nnetcppinternal::Linear, nnetcppinternal::dLinear> LinearActivation;
 
 #endif
