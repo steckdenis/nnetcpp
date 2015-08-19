@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,6 +37,11 @@
  * are added to the network in the order of forward propagation. If the network
  * is recurrent, this avoids loops. Usually, the breadth-first order is the one
  * to use for forward propagation.
+ *
+ * @note When no fancy training methods are required, be sure to use train() and
+ *       trainSequence() for learning (and predict() for prediction). Training
+ *       a network is complicated and using setError, update and setTimestep
+ *       has a great chance of giving bad results.
  */
 class Network
 {
@@ -59,12 +64,21 @@ class Network
          */
         void addNode(AbstractNode *node);
 
+
+        /**
+         * @brief Inform the network that prediction/training will occur for a specific
+         *        time step (in a time series)
+         */
+        void setTimestep(unsigned int timestep);
+
         /**
          * @brief Produce the output corresponding to the input.
          *
          * This prediction is incremental: recurrent networks are not reset between
          * calls to predict(). Ending an input sequence (and preparing the network
          * for the next one) is performed by reset().
+         *
+         * @sa setTimestep()
          */
         Vector predict(const Vector &input);
 
@@ -105,6 +119,11 @@ class Network
         Float setError(const Vector &error);
 
         /**
+         * @brief Clear all the error signals in the network.
+         */
+        void clearError();
+
+        /**
          * @brief Perform one gradient update using the error computed by the
          *        last calls to setExpectedOutput() and setError()
          *
@@ -137,15 +156,15 @@ class Network
          * @param outputs Matrix having one column per output vector
          * @param batch_size Number of vectors handled before a gradient update is performed
          * @param epochs Number of epochs of training
-         * @param shuffle True if the vectors are shuffled between the epochs
-         *                (set to false if a sequence of observations has to be
-         *                learned).
+         *
+         * @note Use trainSequence() if the input data represents a time series.
+         *       Only trainSequence() correctly backpropagates errors through time,
+         *       resets the network between epochs and keeps sample in-order.
          */
         void train(const Eigen::MatrixXf &inputs,
                    const Eigen::MatrixXf &outputs,
                    unsigned int batch_size,
-                   unsigned int epochs,
-                   bool shuffle);
+                   unsigned int epochs);
 
         /**
          * @brief Train the network on a dataset, using weights for the output neurons
@@ -157,8 +176,30 @@ class Network
                    const Eigen::MatrixXf &outputs,
                    const Eigen::MatrixXf &weights,
                    unsigned int batch_size,
-                   unsigned int epochs,
-                   bool shuffle);
+                   unsigned int epochs);
+
+        /**
+         * @brief Train the network on a sequence of inputs and outputs
+         *
+         * @param inputs Matrix having one column per input sample
+         * @param outputs Matrix having one column per output sample
+         * @param epochs Number of epochs of training
+         */
+        void trainSequence(const Eigen::MatrixXf &inputs,
+                           const Eigen::MatrixXf &outputs,
+                           unsigned int epochs);
+
+        /**
+         * @brief Train the network on a sequence of inputs and outputs, using
+         *        weights for the output neurons.
+         *
+         * @param weights Matrix having one column per weight vector. The weight
+         *                vectors are used as described in trainSample().
+         */
+        void trainSequence(const Eigen::MatrixXf &inputs,
+                           const Eigen::MatrixXf &outputs,
+                           const Eigen::MatrixXf &weights,
+                           unsigned int epochs);
 
     private:
         Float setExpectedOutput(const Vector &output, const Vector *weights);
@@ -167,8 +208,11 @@ class Network
                    const Eigen::MatrixXf &outputs,
                    const Eigen::MatrixXf *weights,
                    unsigned int batch_size,
-                   unsigned int epochs,
-                   bool shuffle);
+                   unsigned int epochs);
+        void trainSequence(const Eigen::MatrixXf &inputs,
+                           const Eigen::MatrixXf &outputs,
+                           const Eigen::MatrixXf *weights,
+                           unsigned int epochs);
 
     private:
         AbstractNode::Port _input_port;

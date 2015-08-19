@@ -7,10 +7,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -98,6 +98,24 @@ class AbstractNode
          *        its parameters)
          */
         virtual void reset() {}
+
+        /**
+         * @brief If the input is a sequence, inform the node of a new position
+         *        in the sequence.
+         *
+         * The time-step given can either be a new one (the 10 first inputs have
+         * been seen, now is the 11th), or a time-step that was already visited
+         * (the network is rewinded to the 9th time step so that error can be
+         * backpropagated from the 10th to the 9th time step).
+         *
+         * The default implementation calls clearError() so that the errors are
+         * not accumulated from one time step to the other.
+         */
+        virtual void setCurrentTimestep(unsigned int timestep)
+        {
+            (void) timestep;
+            clearError();
+        }
 };
 
 #endif

@@ -20,48 +20,64 @@
  * THE SOFTWARE.
  */
 
-#ifndef __DENSE_H__
-#define __DENSE_H__
+#include "abstractnetworknode.h"
 
-#include "abstractnode.h"
-
-/**
- * @brief Dense fully-connected layer, with no activation function (linear activation)
- */
-class Dense : public AbstractNode
+AbstractNetworkNode::~AbstractNetworkNode()
 {
-    public:
-        /**
-         * @brief Make a dense connection between an input and the output of this node
-         */
-        Dense(unsigned int outputs, Float learning_rate, Float decay = 0.9f);
+    for (AbstractNode *node : _nodes) {
+        delete node;
+    }
+}
 
-        /**
-         * @brief Set the input port of this node
-         */
-        void setInput(Port *input);
+void AbstractNetworkNode::addNode(AbstractNode *node)
+{
+    _nodes.push_back(node);
+}
 
-        virtual Port *output();
-        virtual void forward();
-        virtual void backward();
-        virtual void update();
-        virtual void clearError();
+void AbstractNetworkNode::forward()
+{
+    for (AbstractNode *node : _nodes) {
+        node->forward();
+    }
+}
 
-        virtual void setCurrentTimestep(unsigned int timestep);
+void AbstractNetworkNode::backward()
+{
+    for (int i=_nodes.size()-1; i>=0; --i) {
+        AbstractNode *node = _nodes[i];
 
-    private:
-        Port *_input;
-        Float _learning_rate;
-        Float _decay;
+        node->backward();
+    }
+}
 
-        Port _output;
+void AbstractNetworkNode::update()
+{
+    for (AbstractNode *node : _nodes) {
+        node->update();
+    }
+}
 
-        Matrix _weights;
-        Matrix _d_weights;
-        Matrix _avg_d_weights;
-        Vector _bias;
-        Vector _d_bias;
-        Vector _avg_d_bias;
-};
+void AbstractNetworkNode::clearError()
+{
+    for (AbstractNode *node : _nodes) {
+        node->clearError();
+    }
+}
 
-#endif
+void AbstractNetworkNode::reset()
+{
+    AbstractNode::reset();
+
+    for (AbstractNode *node : _nodes) {
+        node->reset();
+    }
+}
+
+void AbstractNetworkNode::setCurrentTimestep(unsigned int timestep)
+{
+    AbstractNode::setCurrentTimestep(timestep);
+
+    for (AbstractNode *node : _nodes) {
+        node->setCurrentTimestep(timestep);
+    }
+}

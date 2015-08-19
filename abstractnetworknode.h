@@ -20,48 +20,35 @@
  * THE SOFTWARE.
  */
 
-#ifndef __DENSE_H__
-#define __DENSE_H__
+#ifndef __ABSTRACTNETWORKNODE_H__
+#define __ABSTRACTNETWORKNODE_H__
 
 #include "abstractnode.h"
 
 /**
- * @brief Dense fully-connected layer, with no activation function (linear activation)
+ * @brief Node made of a network of sub-nodes (recurrent nodes for instance)
  */
-class Dense : public AbstractNode
+class AbstractNetworkNode : public AbstractNode
 {
     public:
-        /**
-         * @brief Make a dense connection between an input and the output of this node
-         */
-        Dense(unsigned int outputs, Float learning_rate, Float decay = 0.9f);
+        virtual ~AbstractNetworkNode();
 
-        /**
-         * @brief Set the input port of this node
-         */
-        void setInput(Port *input);
-
-        virtual Port *output();
         virtual void forward();
         virtual void backward();
         virtual void update();
         virtual void clearError();
+        virtual void reset();
 
         virtual void setCurrentTimestep(unsigned int timestep);
 
-    private:
-        Port *_input;
-        Float _learning_rate;
-        Float _decay;
+    protected:
+        /**
+         * @brief Add a node in the network
+         */
+        void addNode(AbstractNode *node);
 
-        Port _output;
-
-        Matrix _weights;
-        Matrix _d_weights;
-        Matrix _avg_d_weights;
-        Vector _bias;
-        Vector _d_bias;
-        Vector _avg_d_bias;
+    protected:
+        std::vector<AbstractNode *> _nodes;
 };
 
 #endif

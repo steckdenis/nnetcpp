@@ -31,6 +31,8 @@
 #include <iostream>
 #include <stdlib.h>
 
+static const float learning_rate = 1e-4;
+
 static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 {
     std::vector<Vector> rs;
@@ -48,11 +50,11 @@ void TestRecurrent::testGRU()
     static const unsigned int N = 40;
 
     Network *net = new Network(1);
-    Dense *dense_in = new Dense(N, 0.005);
-    Dense *dense_z = new Dense(N, 0.005);
-    Dense *dense_r = new Dense(N, 0.005);
-    GRU *gru = new GRU(N, 0.005);
-    Dense *out = new Dense(1, 0.005);
+    Dense *dense_in = new Dense(N, learning_rate);
+    Dense *dense_z = new Dense(N, learning_rate);
+    Dense *dense_r = new Dense(N, learning_rate);
+    GRU *gru = new GRU(N, learning_rate);
+    Dense *out = new Dense(1, learning_rate);
 
     dense_in->setInput(net->inputPort());
     dense_z->setInput(net->inputPort());
@@ -78,12 +80,12 @@ void TestRecurrent::testLSTM()
     static const unsigned int N = 40;
 
     Network *net = new Network(1);
-    Dense *dense_in = new Dense(N, 0.005);
-    Dense *dense_ingate = new Dense(N, 0.005);
-    Dense *dense_outgate = new Dense(N, 0.005);
-    Dense *dense_forgetgate = new Dense(N, 0.005);
-    LSTM *lstm = new LSTM(N, 0.005);
-    Dense *out = new Dense(1, 0.005);
+    Dense *dense_in = new Dense(N, learning_rate);
+    Dense *dense_ingate = new Dense(N, learning_rate);
+    Dense *dense_outgate = new Dense(N, learning_rate);
+    Dense *dense_forgetgate = new Dense(N, learning_rate);
+    LSTM *lstm = new LSTM(N, learning_rate);
+    Dense *out = new Dense(1, learning_rate);
 
     dense_in->setInput(net->inputPort());
     dense_ingate->setInput(net->inputPort());
@@ -138,7 +140,7 @@ void TestRecurrent::testNetwork(Network *net)
     for (int iteration=0; iteration<80000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 3, false, false);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 10, true, true);
     }
 
     // Test the network on all the input sequences (last one included)
@@ -151,7 +153,7 @@ void TestRecurrent::testNetwork(Network *net)
         //       instead of 0).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.30, 1, true, false)
+            checkLearning(net, inputs[i], outputs[i], 0.30, 1, true, true)
         );
     }
 

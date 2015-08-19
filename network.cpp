@@ -48,6 +48,13 @@ void Network::addNode(AbstractNode *node)
     _nodes.push_back(node);
 }
 
+void Network::setTimestep(unsigned int timestep)
+{
+    for (AbstractNode *node : _nodes) {
+        node->setCurrentTimestep(timestep);
+    }
+}
+
 Vector Network::predict(const Vector &input)
 {
     assert(input.rows() == _input_port.value.rows());
@@ -111,15 +118,23 @@ Float Network::setError(const Vector &error)
     return error.array().square().mean();
 }
 
-void Network::update()
+void Network::clearError()
 {
-    // Tell all the nodes to update their parameters, then discard the error signal
     for (AbstractNode *node : _nodes) {
-        node->update();
         node->clearError();
     }
 
     _input_port.error.setZero();
+}
+
+void Network::update()
+{
+    // Tell all the nodes to update their parameters
+    for (AbstractNode *node : _nodes) {
+        node->update();
+    }
+
+    clearError();
 }
 
 Float Network::trainSample(const Vector &input, const Vector &output)
@@ -146,28 +161,40 @@ Float Network::trainSample(const Vector &input, const Vector &output, const Vect
 void Network::train(const Eigen::MatrixXf &inputs,
                     const Eigen::MatrixXf &outputs,
                     unsigned int batch_size,
-                    unsigned int epochs,
-                    bool shuffle)
+                    unsigned int epochs)
 {
-    train(inputs, outputs, nullptr, batch_size, epochs, shuffle);
+    train(inputs, outputs, nullptr, batch_size, epochs);
+}
+
+void Network::trainSequence(const Eigen::MatrixXf &inputs,
+                            const Eigen::MatrixXf &outputs,
+                            unsigned int epochs)
+{
+    trainSequence(inputs, outputs, nullptr, epochs);
 }
 
 void Network::train(const Eigen::MatrixXf &inputs,
                     const Eigen::MatrixXf &outputs,
                     const Eigen::MatrixXf &weights,
                     unsigned int batch_size,
-                    unsigned int epochs,
-                    bool shuffle)
+                    unsigned int epochs)
 {
-    train(inputs, outputs, &weights, batch_size, epochs, shuffle);
+    train(inputs, outputs, &weights, batch_size, epochs);
+}
+
+void Network::trainSequence(const Eigen::MatrixXf &inputs,
+                            const Eigen::MatrixXf &outputs,
+                            const Eigen::MatrixXf &weights,
+                            unsigned int epochs)
+{
+    trainSequence(inputs, outputs, &weights, epochs);
 }
 
 void Network::train(const Eigen::MatrixXf &inputs,
                     const Eigen::MatrixXf &outputs,
                     const Eigen::MatrixXf *weights,
                     unsigned int batch_size,
-                    unsigned int epochs,
-                    bool shuffle)
+                    unsigned int epochs)
 {
     std::vector<int> indexes(inputs.cols());
 
@@ -175,15 +202,10 @@ void Network::train(const Eigen::MatrixXf &inputs,
         indexes[i] = i;
     }
 
-    // Reset the network before any learning
-    reset();
-
     // Epochs
     for (unsigned int epoch=0; epoch < epochs; ++epoch) {
-        // Shuffle the input vectors
-        if (shuffle) {
-            std::random_shuffle(indexes.begin(), indexes.end());
-        }
+        // Shuffle the input vectors to improve non-sequence learning
+        std::random_shuffle(indexes.begin(), indexes.end());
 
         // Perform the training
         unsigned int batch_remaining = batch_size;
@@ -203,8 +225,51 @@ void Network::train(const Eigen::MatrixXf &inputs,
                 update();
             }
         }
+    }
+}
 
-        // Reset the network
+void Network::trainSequence(const Eigen::MatrixXf &inputs,
+                            const Eigen::MatrixXf &outputs,
+                            const Eigen::MatrixXf *weights,
+                            unsigned int epochs)
+{
+    Eigen::MatrixXf errors(outputs.rows(), outputs.cols());
+    AbstractNode *last = _nodes.back();
+
+    // Reset the network before any learning
+    reset();
+
+    // Epochs
+    for (unsigned int epoch=0; epoch < epochs; ++epoch) {
+        // Forward pass in the network, store the errors in a matrix
+        for (int t=0; t<outputs.cols(); ++t) {
+            setTimestep(t);
+            predict(inputs.col(t));
+
+            if (weights == nullptr) {
+                errors.col(t) = outputs.col(t) - last->output()->value;
+            } else {
+                errors.col(t) = (outputs.col(t) - last->output()->value).cwiseProduct(*weights);
+            }
+        }
+
+        // Now that the errors through time are computed, the backward pass can be
+        // performed
+        for (int t=outputs.cols()-1; t>=0; --t) {
+            // Set the error at the output of the network and backpropagate it.
+            // Some nodes (GRU, LSTM) will also backpropagate error from t+1 to t.
+            setError(errors.col(t));
+
+            if (t > 0) {
+                // Rewind the network to the previous time step, and re-forward
+                // it. This allows the network to recover its internal state from
+                // time t-1, which will allow setError (next loop iteration) to
+                // behave correctly
+                setTimestep(t - 1);
+            }
+        }
+
+        update();
         reset();
     }
 }

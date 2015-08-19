@@ -52,7 +52,7 @@ inline bool checkLearning(Network *network,
                           Float target_mse,
                           unsigned int iterations,
                           bool verbose = true,
-                          bool shuffle = true)
+                          bool sequence = false)
 {
     Eigen::MatrixXf inputs(input[0].rows(), input.size());
     Eigen::MatrixXf outputs(output[0].rows(), output.size());
@@ -64,10 +64,16 @@ inline bool checkLearning(Network *network,
     }
 
     // Train the network
-    network->train(inputs, outputs, 1, iterations, shuffle);
+    if (sequence) {
+        network->trainSequence(inputs, outputs, iterations);
+    } else {
+        network->train(inputs, outputs, 1, iterations);
+    }
 
     // Check that learning was correct
     Float mse = 0.0f;
+
+    network->reset();
 
     for (std::size_t i=0; i<input.size(); ++i) {
         Vector v = network->predict(input[i]);
