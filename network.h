@@ -86,7 +86,8 @@ class Network
          * @brief Clear the internal memory of the network but preserve its weights
          *
          * This method can be used between input sequences in order to clear the
-         * internal memory of recurrent networks.
+         * internal memory of recurrent networks. It also resets the time-step to
+         * zero.
          */
         void reset();
 

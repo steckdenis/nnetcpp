@@ -24,6 +24,7 @@
 #define __GRU_H__
 
 #include "abstractnetworknode.h"
+#include "activation.h"
 
 class MergeSum;
 
@@ -48,6 +49,7 @@ class GRU : public AbstractNetworkNode
          *       have X -> dense1 -> input, X -> dense2 -> Z and X -> dense3 -> R).
          */
         GRU(unsigned int size, Float learning_rate, Float decay = 0.9f);
+        ~GRU();
 
         /**
          * @brief Add an X input to this network
@@ -65,14 +67,22 @@ class GRU : public AbstractNetworkNode
         void addR(Port *r);
 
         virtual Port* output();
+        virtual void forward();
+        virtual void backward();
         virtual void reset();
+
+        virtual void setCurrentTimestep(unsigned int timestep);
 
     private:
         MergeSum *_inputs;
         MergeSum *_updates;
         MergeSum *_resets;
-        MergeSum *_output;
+        LinearActivation *_real_output;
+        LinearActivation *_recurrent_output;
 
+        std::vector<Port *> _storage;   /*!< @brief Value of the recurrent connection at each time step */
+        unsigned int _timestep;
+        unsigned int _size;
 };
 
 #endif

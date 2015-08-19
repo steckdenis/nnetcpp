@@ -76,6 +76,12 @@ inline bool checkLearning(Network *network,
     network->reset();
 
     for (std::size_t i=0; i<input.size(); ++i) {
+        if (sequence) {
+            // Tell the network which time-step the prediction is for
+            network->setTimestep(i);
+        }
+
+        // Make the prediction and compute errors
         Vector v = network->predict(input[i]);
 
         mse += (v.array() - output[i].array()).square().mean();

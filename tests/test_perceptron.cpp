@@ -56,7 +56,7 @@ void TestPerceptron::testLinear()
 
     CPPUNIT_ASSERT_MESSAGE(
         "Learning a linear function using no hidden layer",
-        checkLearning(net, input, output, 0.05, 100)
+        checkLearning(net, input, output, 0.002, 100)
     );
 
     delete net;
@@ -76,7 +76,7 @@ void TestPerceptron::testLinear()
 
     CPPUNIT_ASSERT_MESSAGE(
         "Learning a linear function using one hidden layer",
-        checkLearning(net, input, output, 0.001, 200)
+        checkLearning(net, input, output, 0.002, 200)
     );
 
     delete net;

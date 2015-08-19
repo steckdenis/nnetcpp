@@ -78,6 +78,9 @@ void Network::reset()
     for (AbstractNode *node : _nodes) {
         node->reset();
     }
+
+    // Set timestep to zero so that possible recurrent nodes work as expected
+    setTimestep(0);
 }
 
 Float Network::setExpectedOutput(const Vector &output)
@@ -202,6 +205,10 @@ void Network::train(const Eigen::MatrixXf &inputs,
         indexes[i] = i;
     }
 
+    // Place the network at time step zero (it may contain recurrent nodes that
+    // crash if this is not called)
+    reset();
+
     // Epochs
     for (unsigned int epoch=0; epoch < epochs; ++epoch) {
         // Shuffle the input vectors to improve non-sequence learning
@@ -256,17 +263,16 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
         // Now that the errors through time are computed, the backward pass can be
         // performed
         for (int t=outputs.cols()-1; t>=0; --t) {
+            // Rewind the network to the previous time step, and re-forward
+            // it. This allows the network to recover its internal state from
+            // time t-1, which will allow setError (next loop iteration) to
+            // behave correctly
+            setTimestep(t);
+            predict(inputs.col(t));
+
             // Set the error at the output of the network and backpropagate it.
             // Some nodes (GRU, LSTM) will also backpropagate error from t+1 to t.
             setError(errors.col(t));
-
-            if (t > 0) {
-                // Rewind the network to the previous time step, and re-forward
-                // it. This allows the network to recover its internal state from
-                // time t-1, which will allow setError (next loop iteration) to
-                // behave correctly
-                setTimestep(t - 1);
-            }
         }
 
         update();

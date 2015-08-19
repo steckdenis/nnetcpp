@@ -21,12 +21,15 @@
  */
 
 #include "gru.h"
-#include "activation.h"
 #include "dense.h"
 #include "mergeproduct.h"
 #include "mergesum.h"
 
+#include <assert.h>
+
 GRU::GRU(unsigned int size, Float learning_rate, Float decay)
+: _timestep(0),
+  _size(size)
 {
     // Intantiate all the nodes used by a GRU cell
     MergeSum *inputs = new MergeSum;
@@ -38,6 +41,8 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     MergeProduct *update_times_output = new MergeProduct;
     MergeProduct *oneminus_update_times_input = new MergeProduct;
     MergeSum *output = new MergeSum;                                           // z*_output + (1-z)*_inputs
+    LinearActivation *real_output = new LinearActivation;                      // "usable" output, receives error from the expected output of the unit, nothing from t+1
+    LinearActivation *recurrent_output = new LinearActivation;                 // "recurrent" output, receives error from t+1
 
     MergeSum *resets = new MergeSum;
     SigmoidActivation *reset_activation = new SigmoidActivation;
@@ -58,23 +63,25 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     oneminus_update_activation->setInput(update_activation->output());
 
     update_times_output->addInput(update_activation->output());
-    update_times_output->addInput(output->output());
+    update_times_output->addInput(recurrent_output->output());                  // Z*output uses the recurrent connection and will contribute error to it.
     oneminus_update_times_input->addInput(input_activation->output());
     oneminus_update_times_input->addInput(oneminus_update_activation->output());
 
     output->addInput(update_times_output->output());
     output->addInput(oneminus_update_times_input->output());
+    real_output->setInput(output->output());
+    recurrent_output->setInput(output->output());
 
     reset_activation->setInput(resets->output());
     reset_times_output->addInput(reset_activation->output());
-    reset_times_output->addInput(output->output());
+    reset_times_output->addInput(real_output->output());                        // reset*output uses the real output, so they will not contribute errors to recurrent_output
 
-    loop_output_to_resets->setInput(output->output());
-    loop_output_to_updates->setInput(output->output());
+    loop_output_to_resets->setInput(real_output->output());                     // The loops from output to Z and R use real_output, so no error will be backpropagated to t-1
+    loop_output_to_updates->setInput(real_output->output());
     loop_reset_times_output_to_inputs->setInput(reset_times_output->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
-    addNode(loop_output_to_updates);
+    addNode(loop_output_to_updates);        // setCurrentTimeStep has properly set the output of real_output and recurrent_output, so these loops can be used.
     addNode(loop_output_to_resets);
 
     addNode(resets);
@@ -93,19 +100,28 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     addNode(oneminus_update_times_input);
 
     addNode(output);
+    addNode(recurrent_output);                   // This line and the next one allow the cell to fully reach time step t, and allow error from t+1 to flow back in the entire cell
+    addNode(real_output);
 
     // Ensure that h(0) = 0
     _inputs = inputs;
     _resets = resets;
     _updates = updates;
-    _output = output;
+    _real_output = real_output;
+    _recurrent_output = recurrent_output;
 
+    reset();
+}
+
+GRU::~GRU()
+{
+    // Ensure that the storage is emptied
     reset();
 }
 
 AbstractNode::Port *GRU::output()
 {
-    return _output->output();
+    return _real_output->output();
 }
 
 void GRU::addInput(Port *input)
@@ -123,11 +139,70 @@ void GRU::addZ(Port *z)
     _updates->addInput(z);
 }
 
+void GRU::forward()
+{
+    AbstractNetworkNode::forward();
+
+    // Copy the value of output to the storage
+    assert(_storage.size() > _timestep);
+
+    _storage[_timestep]->value = _recurrent_output->output()->value;
+}
+
+void GRU::backward()
+{
+    AbstractNetworkNode::backward();
+
+    // Copy the error of the recurrence in the storage at previous time step
+    assert(_storage.size() > _timestep);
+
+    if (_timestep > 0) {
+        _storage[_timestep - 1]->error = _recurrent_output->output()->error;
+    }
+}
+
 void GRU::reset()
 {
     AbstractNode::reset();
 
-    // Set the output (and its error) to zero
-    _output->output()->value.setZero();
-    _output->output()->error.setZero();
+    // Clear the storage
+    for (Port *port : _storage) {
+        delete port;
+    }
+
+    _storage.clear();
+}
+
+void GRU::setCurrentTimestep(unsigned int timestep)
+{
+    assert(timestep <= _storage.size());
+
+    // Let AbstractNetworkNode reset the error signals of all the nodes in the cell.
+    AbstractNetworkNode::setCurrentTimestep(timestep);
+
+    // Add a new port if needed
+    if (timestep == _storage.size()) {
+        _storage.push_back(new Port);
+
+        _storage.back()->value = Vector::Zero(_size);
+        _storage.back()->error = Vector::Zero(_size);
+    }
+
+    if (timestep > 0) {
+        // Set the value of the recurrent connections to the value at time t-1
+        _recurrent_output->output()->value = _storage[timestep - 1]->value;
+        _real_output->output()->value = _storage[timestep - 1]->value;
+    } else {
+        // Reset the recurrent values
+        _recurrent_output->output()->value.setZero();
+        _real_output->output()->value.setZero();
+    }
+
+    // Set the error of the recurrent output to the error computed at time t
+    // (and keep the error of real_output to zero, it will receive its error from
+    // the outer world)
+    _recurrent_output->output()->error = _storage[timestep]->error;
+
+    // Use the timestep
+    _timestep = timestep;
 }

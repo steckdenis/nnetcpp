@@ -31,7 +31,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-static const float learning_rate = 1e-4;
+static const float learning_rate = 1e-2;
 
 static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 {
@@ -47,7 +47,7 @@ static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 void TestRecurrent::testGRU()
 {
     // Network with N GRU cells
-    static const unsigned int N = 40;
+    static const unsigned int N = 10;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, learning_rate);
@@ -137,10 +137,10 @@ void TestRecurrent::testNetwork(Network *net)
     };
 
     // Train the network on the input sequences (all but the last one)
-    for (int iteration=0; iteration<80000; ++iteration) {
+    for (int iteration=0; iteration<50000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 10, true, true);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, true);
     }
 
     // Test the network on all the input sequences (last one included)
@@ -153,7 +153,7 @@ void TestRecurrent::testNetwork(Network *net)
         //       instead of 0).
         CPPUNIT_ASSERT_MESSAGE(
             "A test vector failed the parity test",
-            checkLearning(net, inputs[i], outputs[i], 0.30, 1, true, true)
+            checkLearning(net, inputs[i], outputs[i], 0.10, 1, true, true)
         );
     }
 

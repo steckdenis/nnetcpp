@@ -75,8 +75,6 @@ void AbstractNetworkNode::reset()
 
 void AbstractNetworkNode::setCurrentTimestep(unsigned int timestep)
 {
-    AbstractNode::setCurrentTimestep(timestep);
-
     for (AbstractNode *node : _nodes) {
         node->setCurrentTimestep(timestep);
     }
