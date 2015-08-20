@@ -47,7 +47,7 @@ GRU::GRU(unsigned int size, Float learning_rate, Float decay)
     SigmoidActivation *reset_activation = new SigmoidActivation;
     MergeProduct *reset_times_output = new MergeProduct;                       // wired back to _inputs through a Dense
 
-    Dense *loop_output_to_updates = new Dense(size, learning_rate, decay);
+    Dense *loop_output_to_updates = new Dense(size, learning_rate, decay, true);    // Bias updates to 1, so that the cell starts by being "transparent" (letting information flow through it)
     Dense *loop_output_to_resets = new Dense(size, learning_rate, decay);
     Dense *loop_reset_times_output_to_inputs = new Dense(size, learning_rate, decay);
 
