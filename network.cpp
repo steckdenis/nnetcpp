@@ -256,7 +256,7 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
             if (weights == nullptr) {
                 errors.col(t) = outputs.col(t) - last->output()->value;
             } else {
-                errors.col(t) = (outputs.col(t) - last->output()->value).cwiseProduct(*weights);
+                errors.col(t) = (outputs.col(t) - last->output()->value).cwiseProduct(weights->col(t));
             }
         }
 
