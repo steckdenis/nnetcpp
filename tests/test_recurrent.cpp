@@ -105,7 +105,7 @@ void TestRecurrent::testLSTM()
     net->addNode(out);
 
     // Test this network
-    testNetwork(net, 0.10);
+    testNetwork(net, 0.02);
 }
 
 void TestRecurrent::testNetwork(Network *net, float target)
@@ -140,7 +140,7 @@ void TestRecurrent::testNetwork(Network *net, float target)
     for (int iteration=0; iteration<10000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, true);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, true, true);
     }
 
     // Test the network on all the input sequences (last one included)

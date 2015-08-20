@@ -96,8 +96,8 @@ void Dense::update()
 void Dense::clearError()
 {
     _output.error.setZero();
-    _d_weights.setZero();
-    _d_bias.setZero();
+    _d_weights *= 0.1f;
+    _d_bias *= 0.1f;
 
     // Keep the moving averages as they are, so that they contain interesting
     // statistics about the general behavior of the gradients.
