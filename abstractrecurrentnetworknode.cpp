@@ -66,7 +66,9 @@ void AbstractRecurrentNetworkNode::backward()
 
     if (_timestep > 0) {
         for (N &n : _nodes) {
-            n.storage[_timestep - 1]->error = n.node->output()->error;
+            // Normalize the error so that it does not become too big when the sequence
+            // is long (the error has a tendency to blow up).
+            n.storage[_timestep - 1]->error = n.node->output()->error * _error_normalization;
         }
     }
 }
@@ -83,6 +85,10 @@ void AbstractRecurrentNetworkNode::reset()
 
         n.storage.clear();
     }
+
+    // Reset the timestep counter, so that a next sequence can be shorter than
+    // the one just finished.
+    _max_timestep = 0;
 }
 
 void AbstractRecurrentNetworkNode::setCurrentTimestep(unsigned int timestep)
@@ -115,4 +121,9 @@ void AbstractRecurrentNetworkNode::setCurrentTimestep(unsigned int timestep)
 
     // Use the timestep
     _timestep = timestep;
+
+    // Keep track of the length of the sequence, this is used for normalizing
+    // backpropagated errors
+    _max_timestep = std::max(_max_timestep, timestep);
+    _error_normalization = 1.0f / float(_max_timestep);
 }

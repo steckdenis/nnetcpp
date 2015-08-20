@@ -61,6 +61,8 @@ class AbstractRecurrentNetworkNode : public AbstractNetworkNode
 
         unsigned int _timestep;
         unsigned int _size;
+        unsigned int _max_timestep;
+        float _error_normalization;
 
         std::vector<N> _nodes;
 };
