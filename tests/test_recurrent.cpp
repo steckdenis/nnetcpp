@@ -47,7 +47,7 @@ static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
 void TestRecurrent::testGRU()
 {
     // Network with N GRU cells
-    static const unsigned int N = 10;
+    static const unsigned int N = 2;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, learning_rate);
@@ -71,13 +71,13 @@ void TestRecurrent::testGRU()
     net->addNode(out);
 
     // Test this network
-    testNetwork(net, 0.10);
+    testNetwork(net, 0.02);
 }
 
 void TestRecurrent::testLSTM()
 {
     // Network with N LSTM cells
-    static const unsigned int N = 100;
+    static const unsigned int N = 50;
 
     Network *net = new Network(1);
     Dense *dense_in = new Dense(N, learning_rate);
@@ -105,7 +105,7 @@ void TestRecurrent::testLSTM()
     net->addNode(out);
 
     // Test this network
-    testNetwork(net, 0.20);
+    testNetwork(net, 0.10);
 }
 
 void TestRecurrent::testNetwork(Network *net, float target)
@@ -127,7 +127,7 @@ void TestRecurrent::testNetwork(Network *net, float target)
         makeSequence({0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f}),
         makeSequence({1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f}),
         makeSequence({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f}),
-        makeSequence({1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f}),
+        makeSequence({1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}),
         makeSequence({1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}),
         makeSequence({1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f}),
         makeSequence({0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f}),
@@ -137,10 +137,10 @@ void TestRecurrent::testNetwork(Network *net, float target)
     };
 
     // Train the network on the input sequences (all but the last one)
-    for (int iteration=0; iteration<50000; ++iteration) {
+    for (int iteration=0; iteration<10000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, true, true);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, true);
     }
 
     // Test the network on all the input sequences (last one included)
