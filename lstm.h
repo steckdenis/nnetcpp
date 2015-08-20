@@ -71,7 +71,6 @@ class LSTM : public AbstractRecurrentNetworkNode
         void addForgetGate(Port *forget);
 
         virtual Port* output();
-        virtual void setCurrentTimestep(unsigned int timestep);
 
     private:
         MergeSum *_inputs;

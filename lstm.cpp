@@ -80,10 +80,10 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     cells_times_output_gate->addInput(output_gate_activation->output());
     cells_times_output_gate->addInput(cells_activation->output());
 
-    loop_output_to_forget_gate->setInput(cells_times_output_gate->output());
-    loop_output_to_input_gate->setInput(cells_times_output_gate->output());
-    loop_output_to_output_gate->setInput(cells_times_output_gate->output());
-    loop_output_to_input->setInput(cells_times_output_gate->output());
+    loop_output_to_forget_gate->setInput(cells_recurrent->output());
+    loop_output_to_input_gate->setInput(cells_recurrent->output());
+    loop_output_to_output_gate->setInput(cells_recurrent->output());
+    loop_output_to_input->setInput(cells_recurrent->output());
 
     // Put everything in a list, in the order in which the forward pass will be run
     addNode(loop_output_to_forget_gate);    // The output has been restored from the recurrent storage and can be used here
@@ -107,10 +107,8 @@ LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
     addNode(cells_activation);
     addNode(cells_times_output_gate);
 
-    // cells_recurrent (real recurrence) and output need to be registered as
-    // recurrent nodes, because their value needs to persist between time steps
+    // cells_recurrent needs to be registered as a recurrent node
     addRecurrentNode(cells_recurrent);
-    addRecurrentNode(cells_times_output_gate);
 
     // Ensure that h(0) = 0
     _inputs = inputs;
@@ -146,16 +144,4 @@ void LSTM::addOutGate(Port *out)
 void LSTM::addForgetGate(Port *forget)
 {
     _forgetgates->addInput(forget);
-}
-
-void LSTM::setCurrentTimestep(unsigned int timestep)
-{
-    assert(timestep <= _storage.size());
-
-    // Handle _cells and _output
-    AbstractRecurrentNetworkNode::setCurrentTimestep(timestep);
-
-    // Clear the error of _output, because it will receive its error from the nodes
-    // connected to the output of LSTM, not from any recurrent connection.
-    _output->output()->error.setZero();
 }
