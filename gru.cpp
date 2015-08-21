@@ -137,8 +137,6 @@ void GRU::addZ(Port *z)
 
 void GRU::setCurrentTimestep(unsigned int timestep)
 {
-    assert(timestep <= _storage.size());
-
     // Handle _recurrent_output (set with setRecurrentNode)
     AbstractRecurrentNetworkNode::setCurrentTimestep(timestep);
 

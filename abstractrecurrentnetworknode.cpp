@@ -50,9 +50,9 @@ void AbstractRecurrentNetworkNode::forward()
     AbstractNetworkNode::forward();
 
     // Copy the value of the recurrent nodes to the storage
-    assert(_storage.size() > _timestep);
-
     for (N &n : _nodes) {
+        assert(n.storage.size() > _timestep);
+
         n.storage[_timestep]->value = n.node->output()->value;
     }
 }
@@ -62,10 +62,10 @@ void AbstractRecurrentNetworkNode::backward()
     AbstractNetworkNode::backward();
 
     // Copy the error of the recurrent nodes in the storage at previous time step
-    assert(_storage.size() > _timestep);
-
     if (_timestep > 0) {
         for (N &n : _nodes) {
+            assert(n.storage.size() > _timestep);
+
             // Normalize the error so that it does not become too big when the sequence
             // is long (the error has a tendency to blow up).
             n.storage[_timestep - 1]->error = n.node->output()->error * _error_normalization;
@@ -93,12 +93,12 @@ void AbstractRecurrentNetworkNode::reset()
 
 void AbstractRecurrentNetworkNode::setCurrentTimestep(unsigned int timestep)
 {
-    assert(timestep <= _storage.size());
-
     // Let AbstractNetworkNode reset the error signals of all the nodes in the cell.
     AbstractNetworkNode::setCurrentTimestep(timestep);
 
     for (N &n : _nodes) {
+        assert(timestep <= n.storage.size());
+
         // Add a new port if needed
         if (timestep == n.storage.size()) {
             n.storage.push_back(new Port);
