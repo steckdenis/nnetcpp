@@ -74,7 +74,7 @@ void AbstractRecurrentNetworkNode::backward()
 
 void AbstractRecurrentNetworkNode::reset()
 {
-    AbstractNode::reset();
+    AbstractNetworkNode::reset();
 
     // Clear the storage
     for (N &n : _recurrent_nodes) {
