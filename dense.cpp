@@ -65,7 +65,8 @@ AbstractNode::Port *Dense::output()
 
 void Dense::forward()
 {
-    _output.value.noalias() = _weights * _input->value + _bias;
+    _output.value.noalias() = _weights * _input->value;
+    _output.value += _bias;
 }
 
 void Dense::backward()

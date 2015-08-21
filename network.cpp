@@ -41,21 +41,6 @@ AbstractNode::Port *Network::output()
     return _nodes.back()->output();
 }
 
-Vector Network::predict(const Vector &input)
-{
-    assert(input.rows() == _input_port.value.rows());
-
-    // Put the input in the input port, and propagate it through the network
-    _input_port.value = input;
-
-    for (AbstractNode *node : _nodes) {
-        node->forward();
-    }
-
-    // Return the output value of the network
-    return output()->value;
-}
-
 void Network::reset()
 {
     // Call reset on all the nodes
@@ -63,38 +48,6 @@ void Network::reset()
 
     // Set timestep to zero so that possible recurrent nodes work as expected
     setCurrentTimestep(0);
-}
-
-Float Network::setExpectedOutput(const Vector &output)
-{
-    return setExpectedOutput(output, nullptr);
-}
-
-Float Network::setExpectedOutput(const Vector &output, const Vector &weights)
-{
-    return setExpectedOutput(output, &weights);
-}
-
-Float Network::setExpectedOutput(const Vector &output, const Vector *weights)
-{
-    if (weights == nullptr) {
-        return setError(output - this->output()->value);
-    } else {
-        return setError((output - this->output()->value).cwiseProduct(*weights));
-    }
-}
-
-Float Network::setError(const Vector &error)
-{
-    // Set the error of the last node
-    assert(error.rows() == last->output()->error.rows());
-
-    output()->error = error;
-
-    // Backpropagate it
-    backward();
-
-    return error.array().square().mean();
 }
 
 void Network::clearError()
@@ -112,27 +65,6 @@ void Network::update()
     AbstractRecurrentNetworkNode::update();
 
     clearError();
-}
-
-Float Network::trainSample(const Vector &input, const Vector &output)
-{
-    return trainSample(input, output, nullptr);
-}
-
-Float Network::trainSample(const Vector &input, const Vector &output, const Vector &weights)
-{
-    return trainSample(input, output, &weights);
-}
-
-Float Network::trainSample(const Vector &input, const Vector &output, const Vector *weights)
-{
-    Float error;
-
-    predict(input);
-    error = setExpectedOutput(output, weights);
-    update();
-
-    return error;
 }
 
 void Network::train(const Eigen::MatrixXf &inputs,
@@ -192,7 +124,7 @@ void Network::train(const Eigen::MatrixXf &inputs,
         unsigned int batch_remaining = batch_size;
 
         for (int index : indexes) {
-            predict(inputs.col(index));
+            predict(inputs.col(index), nullptr);
 
             if (weights == nullptr) {
                 setExpectedOutput(outputs.col(index));
@@ -224,7 +156,7 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
         // Forward pass in the network, store the errors in a matrix
         for (int t=0; t<outputs.cols(); ++t) {
             setCurrentTimestep(t);
-            predict(inputs.col(t));
+            predict(inputs.col(t), nullptr);
 
             if (weights == nullptr) {
                 errors.col(t) = outputs.col(t) - output()->value;

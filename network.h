@@ -71,7 +71,8 @@ class Network : public AbstractRecurrentNetworkNode
          *
          * @sa setTimestep()
          */
-        Vector predict(const Vector &input);
+        template<typename Derived>
+        Vector predict(const Eigen::MatrixBase<Derived> &input);
 
         /**
          * @brief Clear the internal memory of the network but preserve its weights
@@ -93,14 +94,17 @@ class Network : public AbstractRecurrentNetworkNode
          *
          * @return Mean squared error over the output neurons
          */
-        Float setExpectedOutput(const Vector &output);
+        template<typename Derived>
+        Float setExpectedOutput(const Eigen::MatrixBase<Derived> &output);
 
         /**
          * @brief Set the expected output of this network and compute the error
          *        using an error weight vector.
          * @sa train
          */
-        Float setExpectedOutput(const Vector &output, const Vector &weights);
+        template<typename DerivedA, typename DerivedB>
+        Float setExpectedOutput(const Eigen::MatrixBase<DerivedA> &output,
+                                const Eigen::MatrixBase<DerivedB> &weights);
 
         /**
          * @brief Set the error signals at the output of this network and
@@ -108,7 +112,8 @@ class Network : public AbstractRecurrentNetworkNode
          *
          * @return Mean squared error over the output neurons
          */
-        Float setError(const Vector &error);
+        template<typename Derived>
+        Float setError(const Eigen::MatrixBase<Derived> &error);
 
         /**
          * @brief Clear all the error signals in the network.
@@ -128,7 +133,9 @@ class Network : public AbstractRecurrentNetworkNode
          *
          * @return Mean squared error over the output neurons
          */
-        Float trainSample(const Vector &input, const Vector &output);
+        template<typename DerivedA, typename DerivedB>
+        Float trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                          const Eigen::MatrixBase<DerivedB> &output);
 
         /**
          * @brief Perform one gradient update for training, multiplying the error
@@ -139,7 +146,10 @@ class Network : public AbstractRecurrentNetworkNode
          *
          * @return Mean squared error over the output neurons
          */
-        Float trainSample(const Vector &input, const Vector &output, const Vector &weights);
+        template<typename DerivedA, typename DerivedB, typename DerivedC>
+        Float trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                          const Eigen::MatrixBase<DerivedB> &output,
+                          const Eigen::MatrixBase<DerivedC> &weights);
 
         /**
          * @brief Train the network on a dataset
@@ -194,8 +204,18 @@ class Network : public AbstractRecurrentNetworkNode
                            unsigned int epochs);
 
     private:
-        Float setExpectedOutput(const Vector &output, const Vector *weights);
-        Float trainSample(const Vector &input, const Vector &output, const Vector *weights);
+        template<typename Derived>
+        void predict(const Eigen::MatrixBase<Derived> &input, Vector *rs);
+
+        template<typename DerivedA, typename DerivedB>
+        Float setExpectedOutput(const Eigen::MatrixBase<DerivedA> &output,
+                                const Eigen::MatrixBase<DerivedB> *weights);
+
+        template<typename DerivedA, typename DerivedB, typename DerivedC>
+        Float trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                          const Eigen::MatrixBase<DerivedB> &output,
+                          const Eigen::MatrixBase<DerivedC> *weights);
+
         void train(const Eigen::MatrixXf &inputs,
                    const Eigen::MatrixXf &outputs,
                    const Eigen::MatrixXf *weights,
@@ -209,5 +229,100 @@ class Network : public AbstractRecurrentNetworkNode
     private:
         Port _input_port;
 };
+
+template<typename Derived>
+Vector Network::predict(const Eigen::MatrixBase<Derived> &input)
+{
+    Vector rs;
+
+    predict(input, &rs);
+
+    return rs;
+}
+
+template<typename Derived>
+void Network::predict(const Eigen::MatrixBase<Derived> &input, Vector *rs)
+{
+    assert(input.rows() == _input_port.value.rows());
+
+    // Put the input in the input port, and propagate it through the network
+    _input_port.value = input;
+
+    for (AbstractNode *node : _nodes) {
+        node->forward();
+    }
+
+    if (rs) {
+        // Return the output value of the network
+        *rs = output()->value;
+    }
+}
+
+template<typename Derived>
+Float Network::setExpectedOutput(const Eigen::MatrixBase<Derived> &output)
+{
+    return setExpectedOutput(output, (Eigen::MatrixXf *)0);
+}
+
+template<typename DerivedA, typename DerivedB>
+Float Network::setExpectedOutput(const Eigen::MatrixBase<DerivedA> &output,
+                                 const Eigen::MatrixBase<DerivedB> &weights)
+{
+    return setExpectedOutput(output, &weights);
+}
+
+template<typename DerivedA, typename DerivedB>
+Float Network::setExpectedOutput(const Eigen::MatrixBase<DerivedA> &output,
+                                 const Eigen::MatrixBase<DerivedB> *weights)
+{
+    if (weights == nullptr) {
+        return setError(output - this->output()->value);
+    } else {
+        return setError((output - this->output()->value).cwiseProduct(*weights));
+    }
+}
+
+template<typename Derived>
+Float Network::setError(const Eigen::MatrixBase<Derived> &error)
+{
+    // Set the error of the last node
+    assert(error.rows() == output()->error.rows());
+
+    output()->error = error;
+
+    // Backpropagate it
+    backward();
+
+    return error.array().square().mean();
+}
+
+template<typename DerivedA, typename DerivedB>
+Float Network::trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                           const Eigen::MatrixBase<DerivedB> &output)
+{
+    return trainSample(input, output, (Eigen::MatrixXf *)0);
+}
+
+template<typename DerivedA, typename DerivedB, typename DerivedC>
+Float Network::trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                           const Eigen::MatrixBase<DerivedB> &output,
+                           const Eigen::MatrixBase<DerivedC> &weights)
+{
+    return trainSample(input, output, &weights);
+}
+
+template<typename DerivedA, typename DerivedB, typename DerivedC>
+Float Network::trainSample(const Eigen::MatrixBase<DerivedA> &input,
+                           const Eigen::MatrixBase<DerivedB> &output,
+                           const Eigen::MatrixBase<DerivedC> *weights)
+{
+    Float error;
+
+    predict(input, nullptr);
+    error = setExpectedOutput(output, weights);
+    update();
+
+    return error;
+}
 
 #endif
