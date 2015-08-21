@@ -24,9 +24,8 @@
 
 #include <assert.h>
 
-AbstractRecurrentNetworkNode::AbstractRecurrentNetworkNode(unsigned int size)
-: _timestep(0),
-  _size(size)
+AbstractRecurrentNetworkNode::AbstractRecurrentNetworkNode()
+: _timestep(0)
 {
 }
 
@@ -42,7 +41,7 @@ void AbstractRecurrentNetworkNode::addRecurrentNode(AbstractNode *node)
 
     n.node = node;
 
-    _nodes.push_back(n);
+    _recurrent_nodes.push_back(n);
 }
 
 void AbstractRecurrentNetworkNode::forward()
@@ -50,7 +49,7 @@ void AbstractRecurrentNetworkNode::forward()
     AbstractNetworkNode::forward();
 
     // Copy the value of the recurrent nodes to the storage
-    for (N &n : _nodes) {
+    for (N &n : _recurrent_nodes) {
         assert(n.storage.size() > _timestep);
 
         n.storage[_timestep]->value = n.node->output()->value;
@@ -63,7 +62,7 @@ void AbstractRecurrentNetworkNode::backward()
 
     // Copy the error of the recurrent nodes in the storage at previous time step
     if (_timestep > 0) {
-        for (N &n : _nodes) {
+        for (N &n : _recurrent_nodes) {
             assert(n.storage.size() > _timestep);
 
             // Normalize the error so that it does not become too big when the sequence
@@ -78,7 +77,7 @@ void AbstractRecurrentNetworkNode::reset()
     AbstractNode::reset();
 
     // Clear the storage
-    for (N &n : _nodes) {
+    for (N &n : _recurrent_nodes) {
         for (Port *port : n.storage) {
             delete port;
         }
@@ -96,15 +95,17 @@ void AbstractRecurrentNetworkNode::setCurrentTimestep(unsigned int timestep)
     // Let AbstractNetworkNode reset the error signals of all the nodes in the cell.
     AbstractNetworkNode::setCurrentTimestep(timestep);
 
-    for (N &n : _nodes) {
+    for (N &n : _recurrent_nodes) {
         assert(timestep <= n.storage.size());
 
         // Add a new port if needed
         if (timestep == n.storage.size()) {
+            int size = n.node->output()->value.rows();
+
             n.storage.push_back(new Port);
 
-            n.storage.back()->value = Vector::Zero(_size);
-            n.storage.back()->error = Vector::Zero(_size);
+            n.storage.back()->value = Vector::Zero(size);
+            n.storage.back()->error = Vector::Zero(size);
         }
 
         if (timestep > 0) {

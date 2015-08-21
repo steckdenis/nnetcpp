@@ -28,7 +28,6 @@
 #include <assert.h>
 
 GRU::GRU(unsigned int size, Float learning_rate, Float decay)
-: AbstractRecurrentNetworkNode(size)
 {
     // Intantiate all the nodes used by a GRU cell
     MergeSum *inputs = new MergeSum;

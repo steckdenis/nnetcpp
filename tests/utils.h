@@ -78,7 +78,7 @@ inline bool checkLearning(Network *network,
     for (std::size_t i=0; i<input.size(); ++i) {
         if (sequence) {
             // Tell the network which time-step the prediction is for
-            network->setTimestep(i);
+            network->setCurrentTimestep(i);
         }
 
         // Make the prediction and compute errors

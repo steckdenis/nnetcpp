@@ -33,6 +33,12 @@ class AbstractNetworkNode : public AbstractNode
     public:
         virtual ~AbstractNetworkNode();
 
+        /**
+         * @brief Add a node to this network. The first node receives the input,
+         *        the last one produces the output of the network.
+         */
+        void addNode(AbstractNode *node);
+
         virtual void forward();
         virtual void backward();
         virtual void update();
@@ -40,12 +46,6 @@ class AbstractNetworkNode : public AbstractNode
         virtual void reset();
 
         virtual void setCurrentTimestep(unsigned int timestep);
-
-    protected:
-        /**
-         * @brief Add a node in the network
-         */
-        void addNode(AbstractNode *node);
 
     protected:
         std::vector<AbstractNode *> _nodes;

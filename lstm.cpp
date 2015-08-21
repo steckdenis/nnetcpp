@@ -27,7 +27,6 @@
 #include "mergesum.h"
 
 LSTM::LSTM(unsigned int size, Float learning_rate, Float decay)
-: AbstractRecurrentNetworkNode(size)
 {
     // Intantiate all the nodes used by a LSTM cell
     MergeSum *inputs = new MergeSum;

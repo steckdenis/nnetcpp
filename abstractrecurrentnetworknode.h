@@ -37,7 +37,7 @@
 class AbstractRecurrentNetworkNode : public AbstractNetworkNode
 {
     public:
-        AbstractRecurrentNetworkNode(unsigned int size);
+        AbstractRecurrentNetworkNode();
         virtual ~AbstractRecurrentNetworkNode();
 
         /**
@@ -60,11 +60,10 @@ class AbstractRecurrentNetworkNode : public AbstractNetworkNode
         };
 
         unsigned int _timestep;
-        unsigned int _size;
         unsigned int _max_timestep;
         float _error_normalization;
 
-        std::vector<N> _nodes;
+        std::vector<N> _recurrent_nodes;
 };
 
 #endif

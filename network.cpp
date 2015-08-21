@@ -31,28 +31,14 @@ Network::Network(unsigned int inputs)
     _input_port.value = Vector::Zero(inputs);
 }
 
-Network::~Network()
-{
-    for (AbstractNode *node : _nodes) {
-        delete node;
-    }
-}
-
-AbstractNode::Port* Network::inputPort()
+AbstractNode::Port *Network::inputPort()
 {
     return &_input_port;
 }
 
-void Network::addNode(AbstractNode *node)
+AbstractNode::Port *Network::output()
 {
-    _nodes.push_back(node);
-}
-
-void Network::setTimestep(unsigned int timestep)
-{
-    for (AbstractNode *node : _nodes) {
-        node->setCurrentTimestep(timestep);
-    }
+    return _nodes.back()->output();
 }
 
 Vector Network::predict(const Vector &input)
@@ -66,21 +52,17 @@ Vector Network::predict(const Vector &input)
         node->forward();
     }
 
-    // Return the output of the last node
-    AbstractNode *last = _nodes.back();
-
-    return last->output()->value;
+    // Return the output value of the network
+    return output()->value;
 }
 
 void Network::reset()
 {
     // Call reset on all the nodes
-    for (AbstractNode *node : _nodes) {
-        node->reset();
-    }
+    AbstractRecurrentNetworkNode::reset();
 
     // Set timestep to zero so that possible recurrent nodes work as expected
-    setTimestep(0);
+    setCurrentTimestep(0);
 }
 
 Float Network::setExpectedOutput(const Vector &output)
@@ -95,47 +77,39 @@ Float Network::setExpectedOutput(const Vector &output, const Vector &weights)
 
 Float Network::setExpectedOutput(const Vector &output, const Vector *weights)
 {
-    AbstractNode *last = _nodes.back();
-
     if (weights == nullptr) {
-        return setError(output - last->output()->value);
+        return setError(output - this->output()->value);
     } else {
-        return setError((output - last->output()->value).cwiseProduct(*weights));
+        return setError((output - this->output()->value).cwiseProduct(*weights));
     }
 }
 
 Float Network::setError(const Vector &error)
 {
-    AbstractNode *last = _nodes.back();
-
     // Set the error of the last node
     assert(error.rows() == last->output()->error.rows());
 
-    last->output()->error = error;
+    output()->error = error;
 
     // Backpropagate it
-    for (int i=_nodes.size()-1; i>=0; --i) {
-        _nodes[i]->backward();
-    }
+    backward();
 
     return error.array().square().mean();
 }
 
 void Network::clearError()
 {
-    for (AbstractNode *node : _nodes) {
-        node->clearError();
-    }
+    // Clear the error of all the nodes
+    AbstractRecurrentNetworkNode::clearError();
 
+    // Clear the error of the input port, in case it is used somewhere.
     _input_port.error.setZero();
 }
 
 void Network::update()
 {
     // Tell all the nodes to update their parameters
-    for (AbstractNode *node : _nodes) {
-        node->update();
-    }
+    AbstractRecurrentNetworkNode::update();
 
     clearError();
 }
@@ -241,7 +215,6 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
                             unsigned int epochs)
 {
     Eigen::MatrixXf errors(outputs.rows(), outputs.cols());
-    AbstractNode *last = _nodes.back();
 
     // Reset the network before any learning
     reset();
@@ -250,13 +223,13 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
     for (unsigned int epoch=0; epoch < epochs; ++epoch) {
         // Forward pass in the network, store the errors in a matrix
         for (int t=0; t<outputs.cols(); ++t) {
-            setTimestep(t);
+            setCurrentTimestep(t);
             predict(inputs.col(t));
 
             if (weights == nullptr) {
-                errors.col(t) = outputs.col(t) - last->output()->value;
+                errors.col(t) = outputs.col(t) - output()->value;
             } else {
-                errors.col(t) = (outputs.col(t) - last->output()->value).cwiseProduct(weights->col(t));
+                errors.col(t) = (outputs.col(t) - output()->value).cwiseProduct(weights->col(t));
             }
         }
 
@@ -267,7 +240,7 @@ void Network::trainSequence(const Eigen::MatrixXf &inputs,
             // it. This allows the network to recover its internal state from
             // time t-1, which will allow setError (next loop iteration) to
             // behave correctly
-            setTimestep(t);
+            setCurrentTimestep(t);
             predict(inputs.col(t));
 
             // Set the error at the output of the network and backpropagate it.

@@ -23,8 +23,7 @@
 #ifndef __NETWORK_H__
 #define __NETWORK_H__
 
-#include "abstractnode.h"
-#include <vector>
+#include "abstractrecurrentnetworknode.h"
 
 /**
  * @brief Neural network, made of nodes
@@ -36,40 +35,32 @@
  * and making connections (using their input and output ports). Then, the nodes
  * are added to the network in the order of forward propagation. If the network
  * is recurrent, this avoids loops. Usually, the breadth-first order is the one
- * to use for forward propagation.
+ * to use for forward propagation. Recurrent nodes can be registered using addRecurrentNode
+ * (they must also be added using addNode, like any node).
  *
  * @note When no fancy training methods are required, be sure to use train() and
  *       trainSequence() for learning (and predict() for prediction). Training
  *       a network is complicated and using setError, update and setTimestep
  *       has a great chance of giving bad results.
  */
-class Network
+class Network : public AbstractRecurrentNetworkNode
 {
     public:
         /**
          * @param inputs Number of inputs of this network
          */
         Network(unsigned int inputs);
-        ~Network();
 
         /**
          * @brief Port that will contain the inputs given to this network, so
          *        that the first node can read its input from somewhere
          */
-        AbstractNode::Port *inputPort();
+        Port *inputPort();
 
         /**
-         * @brief Add a node to this network. The first node receives the input,
-         *        the last one produces the output of the network.
+         * @brief Output port of the network, this is the output port of its last node
          */
-        void addNode(AbstractNode *node);
-
-
-        /**
-         * @brief Inform the network that prediction/training will occur for a specific
-         *        time step (in a time series)
-         */
-        void setTimestep(unsigned int timestep);
+        virtual Port *output();
 
         /**
          * @brief Produce the output corresponding to the input.
@@ -216,9 +207,7 @@ class Network
                            unsigned int epochs);
 
     private:
-        AbstractNode::Port _input_port;
-
-        std::vector<AbstractNode *> _nodes;
+        Port _input_port;
 };
 
 #endif
