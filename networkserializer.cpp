@@ -20,38 +20,39 @@
  * THE SOFTWARE.
  */
 
-#ifndef __ABSTRACTNETWORKNODE_H__
-#define __ABSTRACTNETWORKNODE_H__
+#include "networkserializer.h"
 
-#include "abstractnode.h"
+#include <assert.h>
 
-/**
- * @brief Node made of a network of sub-nodes (recurrent nodes for instance)
- */
-class AbstractNetworkNode : public AbstractNode
+NetworkSerializer::NetworkSerializer()
+: _pos(0)
 {
-    public:
-        virtual ~AbstractNetworkNode();
+}
 
-        /**
-         * @brief Add a node to this network. The first node receives the input,
-         *        the last one produces the output of the network.
-         */
-        void addNode(AbstractNode *node);
+void NetworkSerializer::writeWeight(float value)
+{
+    _data.push_back(value);
+}
 
-        virtual void serialize(NetworkSerializer &serializer);
-        virtual void deserialize(NetworkSerializer &serializer);
+float NetworkSerializer::readWeight()
+{
+    assert(_pos < _data.size());
 
-        virtual void forward();
-        virtual void backward();
-        virtual void update();
-        virtual void clearError();
-        virtual void reset();
+    return _data[_pos++];
+}
 
-        virtual void setCurrentTimestep(unsigned int timestep);
+void NetworkSerializer::save(std::ostream &s)
+{
+    s.write((const char *)_data.data(), _data.size() * sizeof(float));
+}
 
-    protected:
-        std::vector<AbstractNode *> _nodes;
-};
+void NetworkSerializer::load(std::istream &s)
+{
+    float v;
 
-#endif
+    while (!s.eof()) {
+        s.read((char *)&v, sizeof(float));
+
+        writeWeight(v);
+    }
+}

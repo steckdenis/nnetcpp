@@ -21,6 +21,35 @@
  */
 
 #include "dense.h"
+#include "networkserializer.h"
+
+/**
+ * @brief Serialize an Eigen matrix-like
+ */
+template<typename Derived>
+void _serialize(NetworkSerializer &serializer, const Eigen::PlainObjectBase<Derived> &value)
+{
+    unsigned int count = value.rows() * value.cols();
+    const float *data = value.data();
+
+    for (unsigned int i=0; i<count; ++i) {
+        serializer.writeWeight(data[i]);
+    }
+}
+
+/**
+ * @brief Deserialize an Eigen matrix-like
+ */
+template<typename Derived>
+void _deserialize(NetworkSerializer &serializer, Eigen::PlainObjectBase<Derived> &value)
+{
+    unsigned int count = value.rows() * value.cols();
+    float *data = value.data();
+
+    for (unsigned int i=0; i<count; ++i) {
+        data[i] = serializer.readWeight();
+    }
+}
 
 Dense::Dense(unsigned int outputs, Float learning_rate, Float decay, bool bias_initialized_at_one)
 : _input(nullptr),
@@ -31,6 +60,24 @@ Dense::Dense(unsigned int outputs, Float learning_rate, Float decay, bool bias_i
     // Prepare the output port
     _output.error.resize(outputs);
     _output.value.resize(outputs);
+}
+
+void Dense::serialize(NetworkSerializer &serializer)
+{
+    // Serialize all the weights and statistics
+    _serialize(serializer, _weights);
+    _serialize(serializer, _avg_d_weights);
+    _serialize(serializer, _bias);
+    _serialize(serializer, _avg_d_bias);
+}
+
+void Dense::deserialize(NetworkSerializer &serializer)
+{
+    // Deserialize all the weights and statistics
+    _deserialize(serializer, _weights);
+    _deserialize(serializer, _avg_d_weights);
+    _deserialize(serializer, _bias);
+    _deserialize(serializer, _avg_d_bias);
 }
 
 void Dense::setInput(Port *input)

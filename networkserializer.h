@@ -20,38 +20,44 @@
  * THE SOFTWARE.
  */
 
-#ifndef __ABSTRACTNETWORKNODE_H__
-#define __ABSTRACTNETWORKNODE_H__
+#ifndef __NETWORKSERIALIZER_H__
+#define __NETWORKSERIALIZER_H__
 
-#include "abstractnode.h"
+#include <ostream>
+#include <istream>
+#include <vector>
 
 /**
- * @brief Node made of a network of sub-nodes (recurrent nodes for instance)
+ * @brief Data store to/from which the weights of a neural network can be stored/retrieved
  */
-class AbstractNetworkNode : public AbstractNode
+class NetworkSerializer
 {
     public:
-        virtual ~AbstractNetworkNode();
+        NetworkSerializer();
 
         /**
-         * @brief Add a node to this network. The first node receives the input,
-         *        the last one produces the output of the network.
+         * @brief Write a value to the buffer
          */
-        void addNode(AbstractNode *node);
+        void writeWeight(float value);
 
-        virtual void serialize(NetworkSerializer &serializer);
-        virtual void deserialize(NetworkSerializer &serializer);
+        /**
+         * @brief Read a value from the buffer and advance its read pointer
+         */
+        float readWeight();
 
-        virtual void forward();
-        virtual void backward();
-        virtual void update();
-        virtual void clearError();
-        virtual void reset();
+        /**
+         * @brief Save the contents of the serializer to a file
+         */
+        void save(std::ostream &s);
 
-        virtual void setCurrentTimestep(unsigned int timestep);
+        /**
+         * @brief Load the contents of the serializer from a file
+         */
+        void load(std::istream &s);
 
-    protected:
-        std::vector<AbstractNode *> _nodes;
+    private:
+        std::vector<float> _data;
+        unsigned int _pos;
 };
 
 #endif

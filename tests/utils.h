@@ -25,6 +25,7 @@
 
 #include <abstractnode.h>
 #include <network.h>
+#include <networkserializer.h>
 
 #include <iostream>
 
@@ -69,6 +70,13 @@ inline bool checkLearning(Network *network,
     } else {
         network->train(inputs, outputs, 1, iterations);
     }
+
+    // Serialize then deserialize the network (this tests serialization)
+    NetworkSerializer serializer;
+
+    network->serialize(serializer);
+    network->deserialize(serializer);
+
 
     // Check that learning was correct
     Float mse = 0.0f;

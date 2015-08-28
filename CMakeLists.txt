@@ -9,6 +9,7 @@ pkg_check_modules(CPPUNIT REQUIRED cppunit)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIRS})
 
 set(nnetcpp_SRCS
+    networkserializer.cpp
     network.cpp
     dense.cpp
     abstractmergenode.cpp

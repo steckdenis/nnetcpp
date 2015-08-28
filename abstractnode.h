@@ -26,6 +26,8 @@
 #include <vector>
 #include <Eigen/Dense>
 
+class NetworkSerializer;
+
 // Typedefs so that using doubles instead of singles is easy
 typedef Eigen::VectorXf Vector;
 typedef Eigen::MatrixXf Matrix;
@@ -65,6 +67,16 @@ class AbstractNode
 
         AbstractNode() {}
         virtual ~AbstractNode() {}
+
+        /**
+         * @brief Serialize the weights of this node (if any)
+         */
+        virtual void serialize(NetworkSerializer &serializer) { (void) serializer; }
+
+        /**
+         * @brief Deserialize the weights of this node (if applicable)
+         */
+        virtual void deserialize(NetworkSerializer &serializer) { (void) serializer; }
 
         /**
          * @brief Output port of this dense network

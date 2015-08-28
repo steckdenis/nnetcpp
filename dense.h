@@ -41,6 +41,9 @@ class Dense : public AbstractNode
          */
         void setInput(Port *input);
 
+        virtual void serialize(NetworkSerializer &serializer);
+        virtual void deserialize(NetworkSerializer &serializer);
+
         virtual Port *output();
         virtual void forward();
         virtual void backward();

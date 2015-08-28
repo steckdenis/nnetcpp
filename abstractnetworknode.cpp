@@ -34,6 +34,22 @@ void AbstractNetworkNode::addNode(AbstractNode *node)
     _nodes.push_back(node);
 }
 
+void AbstractNetworkNode::serialize(NetworkSerializer &serializer)
+{
+    // Serialize the nodes
+    for (AbstractNode *node : _nodes) {
+        node->serialize(serializer);
+    }
+}
+
+void AbstractNetworkNode::deserialize(NetworkSerializer &serializer)
+{
+    // Deserialize the nodes
+    for (AbstractNode *node : _nodes) {
+        node->deserialize(serializer);
+    }
+}
+
 void AbstractNetworkNode::forward()
 {
     for (AbstractNode *node : _nodes) {
