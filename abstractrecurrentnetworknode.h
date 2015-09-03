@@ -37,6 +37,17 @@
 class AbstractRecurrentNetworkNode : public AbstractNetworkNode
 {
     public:
+        /**
+         * @brief Backpropagation through time method used
+         */
+        enum BpttVariant {
+            Standard,       /*!< @brief e(t) = backprop(y(t+1), e(t+1)), standard BPTT used by everyone */
+            Experimental    /*!< @brief e(t) = (backprop(y(t+1), e(t+1)) + e(t+1))/length, experimental BPTT that gives better results in some cases */
+        };
+
+        static BpttVariant bptt_variant;
+
+    public:
         AbstractRecurrentNetworkNode();
         virtual ~AbstractRecurrentNetworkNode();
 

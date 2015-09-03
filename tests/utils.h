@@ -26,8 +26,67 @@
 #include <abstractnode.h>
 #include <network.h>
 #include <networkserializer.h>
+#include <dense.h>
+#include <gru.h>
+#include <lstm.h>
 
 #include <iostream>
+
+inline Network *makeGRU(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate = 1e-2)
+{
+    Network *net = new Network(nin);
+    Dense *dense_in = new Dense(nhidden, learning_rate);
+    Dense *dense_z = new Dense(nhidden, learning_rate);
+    Dense *dense_r = new Dense(nhidden, learning_rate);
+    GRU *gru = new GRU(nhidden, learning_rate);
+    Dense *out = new Dense(nout, learning_rate);
+
+    dense_in->setInput(net->inputPort());
+    dense_z->setInput(net->inputPort());
+    dense_r->setInput(net->inputPort());
+    gru->addInput(dense_in->output());
+    gru->addZ(dense_z->output());
+    gru->addR(dense_r->output());
+    out->setInput(gru->output());
+
+    net->addNode(dense_in);
+    net->addNode(dense_z);
+    net->addNode(dense_r);
+    net->addNode(gru);
+    net->addNode(out);
+
+    return net;
+}
+
+inline Network *makeLSTM(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate = 1e-2)
+{
+    Network *net = new Network(nin);
+    Dense *dense_in = new Dense(nhidden, learning_rate);
+    Dense *dense_ingate = new Dense(nhidden, learning_rate);
+    Dense *dense_outgate = new Dense(nhidden, learning_rate);
+    Dense *dense_forgetgate = new Dense(nhidden, learning_rate);
+    LSTM *lstm = new LSTM(nhidden, learning_rate);
+    Dense *out = new Dense(nout, learning_rate);
+
+    dense_in->setInput(net->inputPort());
+    dense_ingate->setInput(net->inputPort());
+    dense_outgate->setInput(net->inputPort());
+    dense_forgetgate->setInput(net->inputPort());
+    lstm->addInput(dense_in->output());
+    lstm->addInGate(dense_ingate->output());
+    lstm->addOutGate(dense_outgate->output());
+    lstm->addForgetGate(dense_forgetgate->output());
+    out->setInput(lstm->output());
+
+    net->addNode(dense_in);
+    net->addNode(dense_ingate);
+    net->addNode(dense_outgate);
+    net->addNode(dense_forgetgate);
+    net->addNode(lstm);
+    net->addNode(out);
+
+    return net;
+}
 
 /**
  * @brief Make a vector from a sequence of floats
@@ -44,16 +103,30 @@ inline Vector makeVector(const std::vector<Float> &data)
 }
 
 /**
- * @brief Check that a network manages to reduce its mean squared error below
- *        a threshold
+ * @brief Make a sequence of vectors from a sequence of floats, each vector having
+ *        a size of one.
  */
-inline bool checkLearning(Network *network,
+inline std::vector<Vector> makeSequence(const std::vector<Float> &entries)
+{
+    std::vector<Vector> rs;
+
+    for (Float entry : entries) {
+        rs.push_back(makeVector({entry}));
+    }
+
+    return rs;
+}
+
+/**
+ * @brief Train a network on input data and return its training error
+ */
+inline float trainNetwork(Network *network,
                           const std::vector<Vector> &input,
                           const std::vector<Vector> &output,
-                          Float target_mse,
                           unsigned int iterations,
                           bool verbose = true,
-                          bool sequence = false)
+                          bool sequence = false,
+                          bool test_serialize = false)
 {
     Eigen::MatrixXf inputs(input[0].rows(), input.size());
     Eigen::MatrixXf outputs(output[0].rows(), output.size());
@@ -71,12 +144,13 @@ inline bool checkLearning(Network *network,
         network->train(inputs, outputs, 1, iterations);
     }
 
-    // Serialize then deserialize the network (this tests serialization)
-    NetworkSerializer serializer;
+    if (test_serialize) {
+        // Serialize then deserialize the network (this tests serialization)
+        NetworkSerializer serializer;
 
-    network->serialize(serializer);
-    network->deserialize(serializer);
-
+        network->serialize(serializer);
+        network->deserialize(serializer);
+    }
 
     // Check that learning was correct
     Float mse = 0.0f;
@@ -105,7 +179,22 @@ inline bool checkLearning(Network *network,
         std::cout << "Final MSE: " << mse << std::endl;
     }
 
-    return mse < target_mse;   // No learning possible
+    return mse;
+}
+
+/**
+ * @brief Check that a network manages to reduce its mean squared error below
+ *        a threshold
+ */
+inline bool checkLearning(Network *network,
+                          const std::vector<Vector> &input,
+                          const std::vector<Vector> &output,
+                          Float target_mse,
+                          unsigned int iterations,
+                          bool verbose = true,
+                          bool sequence = false)
+{
+    return trainNetwork(network, input, output, iterations, verbose, sequence, true) < target_mse;
 }
 
 #endif

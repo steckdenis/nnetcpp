@@ -23,52 +23,15 @@
 #include "test_recurrent.h"
 #include "utils.h"
 
-#include <network.h>
-#include <dense.h>
-#include <gru.h>
-#include <lstm.h>
-
 #include <iostream>
 #include <stdlib.h>
-
-static const float learning_rate = 1e-2;
-
-static std::vector<Vector> makeSequence(const std::vector<Float> &entries)
-{
-    std::vector<Vector> rs;
-
-    for (Float entry : entries) {
-        rs.push_back(makeVector({entry}));
-    }
-
-    return rs;
-}
 
 void TestRecurrent::testGRU()
 {
     // Network with N GRU cells
     static const unsigned int N = 2;
 
-    Network *net = new Network(1);
-    Dense *dense_in = new Dense(N, learning_rate);
-    Dense *dense_z = new Dense(N, learning_rate);
-    Dense *dense_r = new Dense(N, learning_rate);
-    GRU *gru = new GRU(N, learning_rate);
-    Dense *out = new Dense(1, learning_rate);
-
-    dense_in->setInput(net->inputPort());
-    dense_z->setInput(net->inputPort());
-    dense_r->setInput(net->inputPort());
-    gru->addInput(dense_in->output());
-    gru->addZ(dense_z->output());
-    gru->addR(dense_r->output());
-    out->setInput(gru->output());
-
-    net->addNode(dense_in);
-    net->addNode(dense_z);
-    net->addNode(dense_r);
-    net->addNode(gru);
-    net->addNode(out);
+    Network *net = makeGRU(1, N, 1);
 
     // Test this network
     testNetwork(net, 0.02);
@@ -79,30 +42,7 @@ void TestRecurrent::testLSTM()
     // Network with N LSTM cells
     static const unsigned int N = 50;
 
-    Network *net = new Network(1);
-    Dense *dense_in = new Dense(N, learning_rate);
-    Dense *dense_ingate = new Dense(N, learning_rate);
-    Dense *dense_outgate = new Dense(N, learning_rate);
-    Dense *dense_forgetgate = new Dense(N, learning_rate);
-    LSTM *lstm = new LSTM(N, learning_rate);
-    Dense *out = new Dense(1, learning_rate);
-
-    dense_in->setInput(net->inputPort());
-    dense_ingate->setInput(net->inputPort());
-    dense_outgate->setInput(net->inputPort());
-    dense_forgetgate->setInput(net->inputPort());
-    lstm->addInput(dense_in->output());
-    lstm->addInGate(dense_ingate->output());
-    lstm->addOutGate(dense_outgate->output());
-    lstm->addForgetGate(dense_forgetgate->output());
-    out->setInput(lstm->output());
-
-    net->addNode(dense_in);
-    net->addNode(dense_ingate);
-    net->addNode(dense_outgate);
-    net->addNode(dense_forgetgate);
-    net->addNode(lstm);
-    net->addNode(out);
+    Network *net = makeLSTM(1, N, 1);
 
     // Test this network
     testNetwork(net, 0.02);

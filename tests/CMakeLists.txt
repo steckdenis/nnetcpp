@@ -5,6 +5,14 @@ include_directories (
 
 add_definitions(-Wall -Wextra)
 
+# Sequence generation experiment
+add_executable(sequencegeneration
+    sequencegeneration.cpp
+)
+target_link_libraries(sequencegeneration
+    nnetcpp
+)
+
 # unit tests
 add_executable(tests
     tests.cpp

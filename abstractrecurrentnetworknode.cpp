@@ -24,6 +24,8 @@
 
 #include <assert.h>
 
+AbstractRecurrentNetworkNode::BpttVariant AbstractRecurrentNetworkNode::bptt_variant = AbstractRecurrentNetworkNode::Experimental;
+
 AbstractRecurrentNetworkNode::AbstractRecurrentNetworkNode()
 : _timestep(0)
 {
@@ -65,9 +67,23 @@ void AbstractRecurrentNetworkNode::backward()
         for (N &n : _recurrent_nodes) {
             assert(n.storage.size() > _timestep);
 
-            // Normalize the error so that it does not become too big when the sequence
-            // is long (the error has a tendency to blow up).
-            n.storage[_timestep - 1]->error = n.node->output()->error * _error_normalization;
+            switch (bptt_variant) {
+            case Standard:
+                // Remove error[t] that was already present at the node output
+                // before backprop started, and that therefore has to be removed
+                // so that the node error contains only the error from the current
+                // time step
+                n.storage[_timestep - 1]->error = (n.node->output()->error - n.storage[_timestep]->error).cwiseMin(10.0f).cwiseMax(-10.0f);
+                break;
+
+            case Experimental:
+                // The node error contains backprop(y(t), e(t)) + e(t), because
+                // the error of this node is not cleared between time steps.
+                // Divide by the sequence length in order to avoid an exponential
+                // increase of the error over time.
+                n.storage[_timestep - 1]->error = n.node->output()->error * _error_normalization;
+                break;
+            }
         }
     }
 }
