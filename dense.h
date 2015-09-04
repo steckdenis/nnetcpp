@@ -32,6 +32,14 @@ class Dense : public AbstractNode
 {
     public:
         /**
+         * @brief Value by which the gradient is multiplied between updates, a
+         *        non-zero value allows the gradient to have "inertia" in its
+         *        main direction.
+         */
+        static float momentum;
+
+    public:
+        /**
          * @brief Make a dense connection between an input and the output of this node
          */
         Dense(unsigned int outputs, Float learning_rate, Float decay = 0.9f, bool bias_initialized_at_one = false);
@@ -49,6 +57,7 @@ class Dense : public AbstractNode
         virtual void backward();
         virtual void update();
         virtual void clearError();
+        virtual void reset();
 
         virtual void setCurrentTimestep(unsigned int timestep);
 
@@ -66,6 +75,8 @@ class Dense : public AbstractNode
         Vector _bias;
         Vector _d_bias;
         Vector _avg_d_bias;
+
+        unsigned int _max_timestep;
 };
 
 #endif

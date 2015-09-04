@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-inline Network *makeGRU(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate = 1e-2)
+inline Network *makeGRU(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate)
 {
     Network *net = new Network(nin);
     Dense *dense_in = new Dense(nhidden, learning_rate);
@@ -58,7 +58,7 @@ inline Network *makeGRU(unsigned int nin, unsigned int nhidden, unsigned int nou
     return net;
 }
 
-inline Network *makeLSTM(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate = 1e-2)
+inline Network *makeLSTM(unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate)
 {
     Network *net = new Network(nin);
     Dense *dense_in = new Dense(nhidden, learning_rate);

@@ -31,21 +31,21 @@ void TestRecurrent::testGRU()
     // Network with N GRU cells
     static const unsigned int N = 2;
 
-    Network *net = makeGRU(1, N, 1);
+    Network *net = makeGRU(1, N, 1, 1e-2);
 
     // Test this network
-    testNetwork(net, 0.02);
+    testNetwork(net, 0.002);
 }
 
 void TestRecurrent::testLSTM()
 {
     // Network with N LSTM cells
-    static const unsigned int N = 50;
+    static const unsigned int N = 40;
 
-    Network *net = makeLSTM(1, N, 1);
+    Network *net = makeLSTM(1, N, 1, 1e-2);
 
     // Test this network
-    testNetwork(net, 0.02);
+    testNetwork(net, 0.01);
 }
 
 void TestRecurrent::testNetwork(Network *net, float target)

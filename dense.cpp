@@ -23,6 +23,8 @@
 #include "dense.h"
 #include "networkserializer.h"
 
+float Dense::momentum = 0.1f;
+
 /**
  * @brief Serialize an Eigen matrix-like
  */
@@ -128,6 +130,13 @@ void Dense::backward()
 
 void Dense::update()
 {
+    // Divide the gradients by the number of time steps, so that gradient updates
+    // don't blow up for long sequences
+    float normalization_factor = 1.0f / float(_max_timestep);
+
+    _d_weights *= normalization_factor;
+    _d_bias *= normalization_factor;
+
     // Keep a moving average of the gradients
     _avg_d_weights = _decay * _avg_d_weights + (1.0f - _decay) * _d_weights.cwiseProduct(_d_weights);
     _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.cwiseProduct(_d_bias);
@@ -144,8 +153,8 @@ void Dense::update()
 void Dense::clearError()
 {
     _output.error.setZero();
-    _d_weights *= 0.1f;
-    _d_bias *= 0.1f;
+    _d_weights *= momentum;
+    _d_bias *= momentum;
 
     // Keep the moving averages as they are, so that they contain interesting
     // statistics about the general behavior of the gradients.
@@ -157,4 +166,13 @@ void Dense::setCurrentTimestep(unsigned int timestep)
 
     // Clear the error signal but not the gradients
     _output.error.setZero();
+
+    // Keep track of the maximum timestep, that gives the sequence length, used
+    // for averaging the gradients
+    _max_timestep = std::max(_max_timestep, timestep);
+}
+
+void Dense::reset()
+{
+    _max_timestep = 0;
 }

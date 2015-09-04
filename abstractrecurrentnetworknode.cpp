@@ -24,7 +24,7 @@
 
 #include <assert.h>
 
-AbstractRecurrentNetworkNode::BpttVariant AbstractRecurrentNetworkNode::bptt_variant = AbstractRecurrentNetworkNode::Experimental;
+AbstractRecurrentNetworkNode::BpttVariant AbstractRecurrentNetworkNode::bptt_variant = AbstractRecurrentNetworkNode::Standard;
 
 AbstractRecurrentNetworkNode::AbstractRecurrentNetworkNode()
 : _timestep(0)
