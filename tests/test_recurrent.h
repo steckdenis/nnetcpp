@@ -31,11 +31,13 @@ class Network;
 class TestRecurrent : public CppUnit::TestCase
 {
     CPPUNIT_TEST_SUITE(TestRecurrent);
+    CPPUNIT_TEST(testCWRNN);
     CPPUNIT_TEST(testGRU);
     CPPUNIT_TEST(testLSTM);
     CPPUNIT_TEST_SUITE_END();
 
     protected:
+        void testCWRNN();
         void testGRU();
         void testLSTM();
 

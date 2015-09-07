@@ -22,11 +22,6 @@
 
 #include "utils.h"
 
-#include <nnetcpp/gru.h>
-#include <nnetcpp/lstm.h>
-#include <nnetcpp/dense.h>
-#include <nnetcpp/network.h>
-
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -40,6 +35,7 @@ int main(int argc, char **argv)
 {
     Network *network = nullptr;
     unsigned int hidden_neurons = 100;
+    unsigned int epochs = 10000;
     float learning_rate = 1e-4;
 
     // Enable FPU exceptions so that NaN and infinites can be traced back
@@ -54,7 +50,8 @@ int main(int argc, char **argv)
         Method,
         HiddenNeurons,
         LearningRate,
-        Momentum
+        Momentum,
+        Epochs
     } state = Network;
 
     for (int i=1; i<argc; ++i) {
@@ -70,6 +67,8 @@ int main(int argc, char **argv)
             state = LearningRate;
         } else if (arg == "--momentum") {
             state = Momentum;
+        } else if (arg == "--epochs") {
+            state = Epochs;
         } else {
             switch (state) {
             case Network:
@@ -79,6 +78,9 @@ int main(int argc, char **argv)
                 } else if (arg == "lstm") {
                     network_name = "LSTM";
                     network = makeLSTM(1, hidden_neurons, 1, learning_rate);
+                } else if (arg == "cwrnn") {
+                    network_name = "Clockwork RNN";
+                    network = makeCWRNN(9, 1, hidden_neurons, 1, learning_rate);
                 }
                 break;
 
@@ -102,6 +104,10 @@ int main(int argc, char **argv)
 
             case Momentum:
                 Dense::momentum = strtof(argv[i], nullptr);
+                break;
+
+            case Epochs:
+                epochs = atoi(argv[i]);
                 break;
             }
         }
@@ -161,11 +167,11 @@ int main(int argc, char **argv)
         input.push_back(one);
     }
 
-    // Train the network for 10000 time steps, output stats
+    // Training epochs
     std::ofstream training("training.dat");
     float avg_mse = 1.0f;
 
-    for (unsigned int t=0; t<10000; ++t) {
+    for (unsigned int t=0; t<epochs; ++t) {
         float mse = trainNetwork(network, input, sequence, 1, false, true, false);
 
         training << t << ' ' << mse << std::endl;

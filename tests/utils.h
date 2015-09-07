@@ -29,6 +29,7 @@
 #include <dense.h>
 #include <gru.h>
 #include <lstm.h>
+#include <cwrnn.h>
 
 #include <iostream>
 
@@ -83,6 +84,21 @@ inline Network *makeLSTM(unsigned int nin, unsigned int nhidden, unsigned int no
     net->addNode(dense_outgate);
     net->addNode(dense_forgetgate);
     net->addNode(lstm);
+    net->addNode(out);
+
+    return net;
+}
+
+inline Network *makeCWRNN(unsigned int num_units, unsigned int nin, unsigned int nhidden, unsigned int nout, float learning_rate)
+{
+    Network *net = new Network(nin);
+    CWRNN *cwrnn = new CWRNN(num_units, nhidden, learning_rate);
+    Dense *out = new Dense(nout, learning_rate);
+
+    cwrnn->addInput(net->inputPort());
+    out->setInput(cwrnn->output());
+
+    net->addNode(cwrnn);
     net->addNode(out);
 
     return net;

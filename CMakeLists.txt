@@ -21,6 +21,7 @@ set(nnetcpp_SRCS
     mergeproduct.cpp
     gru.cpp
     lstm.cpp
+    cwrnn.cpp
 )
 file(GLOB nnetcpp_HDRS *.h)
 

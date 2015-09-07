@@ -26,10 +26,23 @@
 #include <iostream>
 #include <stdlib.h>
 
+void TestRecurrent::testCWRNN()
+{
+    // Network with N CWRNN nodes of M neurons each
+    static const unsigned int N = 3;
+    static const unsigned int M = 10;
+
+    Network *net = makeCWRNN(N, 1, N * M, 1, 1e-2);
+
+    // Test this network. The network is not expected to learn the parity task
+    // (it is designed for sequence modelling), but mustn't diverge.
+    testNetwork(net, 0.50);
+}
+
 void TestRecurrent::testGRU()
 {
     // Network with N GRU cells
-    static const unsigned int N = 2;
+    static const unsigned int N = 4;
 
     Network *net = makeGRU(1, N, 1, 1e-2);
 
@@ -42,10 +55,10 @@ void TestRecurrent::testLSTM()
     // Network with N LSTM cells
     static const unsigned int N = 40;
 
-    Network *net = makeLSTM(1, N, 1, 1e-2);
+    Network *net = makeLSTM(1, N, 1, 5e-3);
 
     // Test this network
-    testNetwork(net, 0.01);
+    testNetwork(net, 0.03);
 }
 
 void TestRecurrent::testNetwork(Network *net, float target)
@@ -80,7 +93,7 @@ void TestRecurrent::testNetwork(Network *net, float target)
     for (int iteration=0; iteration<10000; ++iteration) {
         int i = rand() % (int)inputs.size();
 
-        checkLearning(net, inputs[i], outputs[i], 0.0, 1, false, true);
+        checkLearning(net, inputs[i], outputs[i], 0.0, 1, true, true);
     }
 
     // Test the network on all the input sequences (last one included)
