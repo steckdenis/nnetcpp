@@ -49,7 +49,11 @@ void AbstractRecurrentNetworkNode::addRecurrentNode(AbstractNode *node)
 void AbstractRecurrentNetworkNode::forward()
 {
     AbstractNetworkNode::forward();
+    forwardRecurrent();
+}
 
+void AbstractRecurrentNetworkNode::forwardRecurrent()
+{
     // Copy the value of the recurrent nodes to the storage
     for (N &n : _recurrent_nodes) {
         assert(n.storage.size() > _timestep);
@@ -61,7 +65,11 @@ void AbstractRecurrentNetworkNode::forward()
 void AbstractRecurrentNetworkNode::backward()
 {
     AbstractNetworkNode::backward();
+    backwardRecurrent();
+}
 
+void AbstractRecurrentNetworkNode::backwardRecurrent()
+{
     // Copy the error of the recurrent nodes in the storage at previous time step
     if (_timestep > 0) {
         for (N &n : _recurrent_nodes) {
@@ -143,4 +151,9 @@ void AbstractRecurrentNetworkNode::setCurrentTimestep(unsigned int timestep)
     // backpropagated errors
     _max_timestep = std::max(_max_timestep, timestep);
     _error_normalization = 1.0f / float(_max_timestep);
+}
+
+unsigned int AbstractRecurrentNetworkNode::currentTimestep()
+{
+    return _timestep;
 }

@@ -71,6 +71,7 @@ class Activation : public AbstractNode
         virtual void clearError()
         {
             _output.error.setZero();
+            _output.value.setZero();
         }
 
         virtual void update()

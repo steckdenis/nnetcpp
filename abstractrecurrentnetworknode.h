@@ -62,6 +62,18 @@ class AbstractRecurrentNetworkNode : public AbstractNetworkNode
         virtual void reset();
 
         virtual void setCurrentTimestep(unsigned int timestep);
+        unsigned int currentTimestep();
+
+    protected:
+        /**
+         * @brief Copy the values of the recurrent nodes from time t to time t+1
+         */
+        void forwardRecurrent();
+
+        /**
+         * @brief Copy the error of the recurrent nodes from time t to time t-1
+         */
+        void backwardRecurrent();
 
     private:
         struct N

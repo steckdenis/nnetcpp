@@ -153,6 +153,8 @@ void Dense::update()
 void Dense::clearError()
 {
     _output.error.setZero();
+    _output.value.setZero();
+
     _d_weights *= momentum;
     _d_bias *= momentum;
 
@@ -166,6 +168,7 @@ void Dense::setCurrentTimestep(unsigned int timestep)
 
     // Clear the error signal but not the gradients
     _output.error.setZero();
+    _output.value.setZero();
 
     // Keep track of the maximum timestep, that gives the sequence length, used
     // for averaging the gradients
