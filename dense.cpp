@@ -132,7 +132,7 @@ void Dense::update()
 {
     // Divide the gradients by the number of time steps, so that gradient updates
     // don't blow up for long sequences
-    float normalization_factor = 1.0f / float(_max_timestep);
+    float normalization_factor = 1.0f / float(_max_timestep + 1);
 
     _d_weights *= normalization_factor;
     _d_bias *= normalization_factor;
