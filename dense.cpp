@@ -138,15 +138,15 @@ void Dense::update()
     _d_bias *= normalization_factor;
 
     // Keep a moving average of the gradients
-    _avg_d_weights = _decay * _avg_d_weights + (1.0f - _decay) * _d_weights.cwiseProduct(_d_weights);
-    _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.cwiseProduct(_d_bias);
+    _avg_d_weights = _decay * _avg_d_weights + (1.0f - _decay) * _d_weights.array().square().matrix();
+    _avg_d_bias = _decay * _avg_d_bias + (1.0f - _decay) * _d_bias.array().square().matrix();
 
     // Perform the update using RMSprop
     _weights.noalias() -= (_learning_rate * _d_weights).cwiseQuotient(
-        (_avg_d_weights.cwiseSqrt().array() + 1e-3).matrix()
+        (_avg_d_weights.array().sqrt() + 1e-3).matrix()
     );
     _bias.noalias() -= (_learning_rate * _d_bias).cwiseQuotient(
-        (_avg_d_bias.cwiseSqrt().array() + 1e-3).matrix()
+        (_avg_d_bias.array().sqrt() + 1e-3).matrix()
     );
 }
 
