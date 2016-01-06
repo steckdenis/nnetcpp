@@ -56,3 +56,13 @@ void NetworkSerializer::load(std::istream &s)
         writeWeight(v);
     }
 }
+
+float *NetworkSerializer::data()
+{
+    return _data.data();
+}
+
+unsigned int NetworkSerializer::size() const
+{
+    return _data.size();
+}

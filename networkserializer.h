@@ -55,6 +55,16 @@ class NetworkSerializer
          */
         void load(std::istream &s);
 
+        /**
+         * @brief Pointer to the data currently in the serializer
+         */
+        float *data();
+
+        /**
+         * @brief Number of elements in the serializer
+         */
+        unsigned int size() const;
+
     private:
         std::vector<float> _data;
         unsigned int _pos;
